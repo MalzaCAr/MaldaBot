@@ -1,4 +1,5 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
+const { PermissionFlagsBits } = require('discord-api-types/v10');
 const db = require('../../db/index');
 
 class keywordRegex {
@@ -11,6 +12,7 @@ class keywordRegex {
     amountOfMs = 60000; //lowest possible
     name = "minute"; 
 }
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -28,29 +30,74 @@ module.exports = {
         .addStringOption(option => option.setName('interval')
         .setDescription('Time interval at which the reminder will repeat (optional)')
         .setRequired(false)),
+        //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
 	async execute(interaction) {
+        function keywordSearch(inputString) {
+            let result = 0;
+            for (let regex of regexes) {
+                let position; //position of keyword
+                for (let i of regex.regexArr) {
+                    position = inputString.search(i);
+        
+                    if (position < 0) continue; //search returns -1 if not found, so checking that
+        
+                    let number = ""; 
+        
+                    for (let j = position - 1; j >= 0 && !isNaN(parseInt(timeString[j])); j--) { //goes backwards from keyword until it finds a non-digit
+                        number += inputString[j];
+                    }
+        
+                    if (number.length > 1) { //since the numbers are added backwards, the string must be inverted to display the right number
+                        number = number.split("").reverse().join("")
+                    }
+                    result += number * regex.amountOfMs;
+                    break;
+                } 
+            }
+        
+            return result;
+        }
+        
+        //List of regexes for the keywords for time input
+        //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
+        //Also make sure to go from smallest unit of time to biggest, otherwise rip code
+        let minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
+        let hourRegex = [/hours/i, /hour/i, /h/i];
+        let dayRegex = [/days/i, /day/i, /d/i];
+        let weekRegex = [/weeks/i, /week/i, /w/i];
+
+        //my regex for funny
+        const malzaRe = /<@274853598280810496>/
+
+        let regexes = [
+            new keywordRegex(minRegex, 60000, "minutes"), //mins
+            new keywordRegex(hourRegex, 3600000, "hours"), //hours
+            new keywordRegex(dayRegex, 86400000, "days"), //days
+            new keywordRegex(weekRegex, 604800000, "weeks") //weeks
+        ];
+
         const reminderMemo = interaction.options.data.find(arg => arg.name === 'memo').value;
 
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
         let channelID = interaction.channelId;
 
+        const nonoterms = [/@everyone/i, /@here/i]; //no funny @everyone @here
+        for (nonoterm of nonoterms) {
+            if (reminderMemo.search(nonoterm) >= 0) {
+                interaction.reply({content: `no, fuck off <@${discID}>`});
+                return;
+            }
+        }
+
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
         timeString = timeString.toLowerCase(); //fuck case sensitivity lmao
         timeString = timeString.replace(/ /g, ""); //fuck spaces too
 
-        let repeatInterval;
-        if ( typeof interaction.options.data.find(arg => arg.name === 'interval') !== 'undefined') {
-            repeatInterval =  interaction.options.data.find(arg => arg.name === 'interval').value;
-            repeatInterval = repeatInterval.toLowerCase().replace(/ /g, ""); // -||-
-        }
-        else repeatInterval = null;
-
-
         if (timeString == "help") {
-            await interaction.reply({content:"Type in a number followed by a keyword such as 'minutes', 'mins', 'm' etc. "/*, ephemeral: true*/});
-            await interaction.followUp({content: "Example: '1 day 12 hours 30 m'"/*, ephemeral: true*/});
+            await interaction.reply({content:"Type in a number followed by a keyword such as 'minutes', 'mins', 'm' etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`."/*, ephemeral: true*/});
+            await interaction.followUp({content: "Example: '5 weeks 1 day 12 hours 30 mins', \nor: '5w1d12h30m'"/*, ephemeral: true*/});
             return;
         }
 
@@ -62,57 +109,7 @@ module.exports = {
             return;
         }
 
-        let minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
-        let hourRegex = [/hours/i, /hour/i, /h/i];
-        let dayRegex = [/days/i, /day/i, /d/i];
-        let weekRegex = [/weeks/i, /week/i, /w/i];
-        let monthRegex = [/months/i, /month/i, /mon/i]; //unused because length is inconsistent and I cba to code that in
-
-        //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
-        //Also make sure to go from smallest unit of time to biggest, otherwise rip code
-        let regexes = [
-            new keywordRegex(minRegex, 60000, "minutes"), //mins
-            new keywordRegex(hourRegex, 3600000, "hours"), //hours
-            new keywordRegex(dayRegex, 86400000, "days"), //days
-            new keywordRegex(weekRegex, 604800000, "weeks") //weeks
-        ];
-
-        let futureDateInMillis = 0;
-        let intervalInMillis;
-
-        function regexsmthidk(uhhhh, nuhuh) {
-            for (let regex of regexes) {
-                let position; //position of keyword
-                for (let i of regex.regexArr) {
-                    position = uhhhh.search(i);
-    
-                    if (position < 0) continue; //search returns -1 if not found, so checking that
-    
-                    let number = ""; 
-    
-                    for (let j = position - 1; j >= 0 && isNaN(parseInt(timeString[j])) == false; j--) { //goes backwards from keyword until it finds a non-digit
-                        number += uhhhh[j];
-                    }
-    
-                    if (number.length > 1) { //since the numbers are added backwards, the string must be inverted to display the right number
-                        number = number.split("").reverse().join("")
-                    }
-                    nuhuh.num += number * regex.amountOfMs;
-                    break;
-                } 
-            }
-        }
-
-        let futureDateObj = {num: 0};
-        regexsmthidk(timeString, futureDateObj);
-        futureDateInMillis = futureDateObj.num;
-        if (repeatInterval !== null) {
-            let intervalObj = {num: 0}; //i swear to god if this fucking works
-            regexsmthidk(repeatInterval, intervalObj);
-            intervalInMillis = intervalObj.num; //this is so fucking cursed
-        }
-        delete futureDateObj;
-        delete intervalObj;
+        let futureDateInMillis = keywordSearch(timeString);
 
         if (futureDateInMillis <= 0) { //some idiot proofing :P
             interaction.reply({content: "No due time has been identified"});
@@ -129,8 +126,8 @@ module.exports = {
         dueDate.setTime(currentDate.getTime() + futureDateInMillis);
 
         try {
-            res = await db.queryReminder(`INSERT INTO reminders (discID, nickname, memo, dueTime, channelID, interval) VALUES ($1, $2, $3, $4, $5, $6)`, [
-                discID, nickname, reminderMemo, dueDate.toJSON(), channelID, intervalInMillis
+            res = await db.queryReminder(`INSERT INTO reminders (discID, nickname, memo, dueTime, channelID) VALUES ($1, $2, $3, $4, $5)`, [
+                discID, nickname, reminderMemo, dueDate.toJSON(), channelID
             ])
         } catch (err) {
             console.log(err);
@@ -145,6 +142,7 @@ module.exports = {
                 let result = parseInt(futureDateInMillis / regexes[i].amountOfMs);
                 futureDateInMillis -= result * regexes[i].amountOfMs;
     
+                //the display names for the regexes
                 if (result == 1) {
                     replyArray.push(`1 ${regexes[i].name.slice(0, regexes[i].name.length - 1)}`);
                 }
@@ -154,7 +152,10 @@ module.exports = {
             }
         }
 
+        const discTimestamp = Math.floor(dueDate.getTime()/1000); //discord timestamp to show date in the user's timezone
+        const replyString = new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)
+
         //node magic format methods
-        interaction.reply({content: `Reminder set to go off in ${new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)}`});
+        interaction.reply({content: `Reminder set to go off in ${replyString}, at <t:${discTimestamp}:f>`});
 	}
 };

@@ -23,9 +23,14 @@ module.exports = {
                         //handles the output message containing in how many weeks/days/hours/minutes is the reminder due
                         let replyArray = [];
                         
-                        if (timeDiff / 604800000 > 1) {
-                                let weeks = parseInt(timeDiff / 604800000);
-                                timeDiff %= 604800000;
+                        const millisWeek = 604800000; //number of milliseconds in a week
+                        const millisDay = 86400000; //number of milliseconds in a day
+                        const millisHour = 3600000; //number of milliseconds in an hour
+                        const millisMin = 60000; //number of milliseconds in a minute
+
+                        if (timeDiff / millisWeek > 1) {
+                                let weeks = parseInt(timeDiff / millisWeek);
+                                timeDiff %= millisWeek;
 
                                 if (weeks == 1) {
                                         replyArray.push(`1 week`);
@@ -34,9 +39,9 @@ module.exports = {
                                         replyArray.push(`${weeks} week`);
                                 }
                         }
-                        if (timeDiff / 86400000 > 1) {
-                                let days = parseInt(timeDiff / 86400000);
-                                timeDiff %= 86400000;
+                        if (timeDiff / millisDay > 1) {
+                                let days = parseInt(timeDiff / millisDay);
+                                timeDiff %= millisDay;
 
                                 if (days == 1) {
                                         replyArray.push(`1 day`);
@@ -45,9 +50,9 @@ module.exports = {
                                         replyArray.push(`${days} days`);
                                 }
                         }
-                        if (timeDiff / 3600000 > 1) {
-                                let hours = parseInt(timeDiff / 3600000);
-                                timeDiff %= 3600000;
+                        if (timeDiff / millisHour > 1) {
+                                let hours = parseInt(timeDiff / millisHour);
+                                timeDiff %= millisHour;
 
                                 if (hours == 1) {
                                         replyArray.push(`1 hour`);
@@ -56,9 +61,9 @@ module.exports = {
                                         replyArray.push(`${hours} hours`);
                                 }
                         }
-                        if (timeDiff / 60000 > 1) {
-                                let mins = parseInt(timeDiff / 60000);
-                                timeDiff %= 60000;
+                        if (timeDiff / millisMin > 1) {
+                                let mins = parseInt(timeDiff / millisMin);
+                                timeDiff %= millisMin;
 
                                 if (mins == 1) {
                                         replyArray.push(`1 minute`);

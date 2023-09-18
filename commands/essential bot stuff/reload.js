@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { PermissionFlagsBits } = require('discord-api-types/v10');
 //https://discordjs.guide/command-handling/adding-features.html#reloading-commands
 //this is not blatantly copied from mgram i swear
 
@@ -9,10 +10,11 @@ module.exports = {
     .setDescription(`Reloads a command`)
 	.addStringOption(option => option.setName('command')
 		.setDescription('Name of the command to reload')
-		.setRequired(true)),
+		.setRequired(true))
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		const commandName = interaction.options.data.find(arg => arg.name === 'command').value.toLowerCase();
-		console.log(commandName)
+
 		const command = interaction.client.commands.get(commandName)
 			// || interaction.client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 

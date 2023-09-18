@@ -25,7 +25,7 @@ module.exports = {
 
         try {
             db.queryReminder("DELETE FROM reminders WHERE id = $1", [remID]);
-            interaction.reply({content: `Successfully deleted the reminder with the id ${remID}.`/*ephemeral: true*/})
+            interaction.reply({content: `Successfully deleted the reminder (id: ${remID}).`/*ephemeral: true*/})
         }catch (err) {
             console.log(err);
             interaction.reply({content: `Something went wrong with the deletion of the reminder`});

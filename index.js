@@ -91,7 +91,7 @@ client.on('messageCreate', message => { //ignore this lmao, having a bit of fun 
 			case "320241358440759307": //hadi
 				message.channel.send(`CLEAN YOUR FUCKING COMPUTER`);
 				break;
-			case "612484496738222095":
+			case "612484496738222095": //ino
 				message.channel.send(`At your service my queen`);
 				break;
 			default:
@@ -129,7 +129,7 @@ setInterval(async function() {
 	}	
 
 	try {
-		res = await queryReminder("DELETE FROM reminders WHERE duetime < $1 AND interval = NULL", [currentDate]);
+		res = await queryReminder("DELETE FROM reminders WHERE duetime < $1", [currentDate]);
 	} catch (err) {
 		console.log(err);
 	}
