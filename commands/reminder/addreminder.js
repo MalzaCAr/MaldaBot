@@ -25,11 +25,7 @@ module.exports = {
         
         .addStringOption(option => option.setName('time')
         .setDescription('Due date; Type "help" to see how to use this field')
-        .setRequired(true))
-        
-        .addStringOption(option => option.setName('interval')
-        .setDescription('Time interval at which the reminder will repeat (optional)')
-        .setRequired(false)),
+        .setRequired(true)),
         //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
 	async execute(interaction) {
@@ -137,12 +133,16 @@ module.exports = {
 
         let replyArray = []; //used for displaying the due time
 
+        //divide the total amount of ms by chunks of amount of ms of weeks, days, hours and minutes
+        //then convert to amount of weeks, days, hours and minutes
         for (let i = regexes.length - 1; i >= 0; i--) {
             if (futureDateInMillis / regexes[i].amountOfMs >= 1) {
                 let result = parseInt(futureDateInMillis / regexes[i].amountOfMs);
                 futureDateInMillis -= result * regexes[i].amountOfMs;
     
-                //the display names for the regexes
+                //the display names for the regexes are in plural ("minutes, hours and such")
+                //which doesn't work if there's only 1 minute or 1 hour or such
+                //so if it's not plural, cut off the last "s" on the words
                 if (result == 1) {
                     replyArray.push(`1 ${regexes[i].name.slice(0, regexes[i].name.length - 1)}`);
                 }
