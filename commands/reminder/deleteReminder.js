@@ -8,11 +8,10 @@ module.exports = {
     .addIntegerOption(option => option.setName('remid')
         .setDescription('the id of the reminder')
         .setRequired(true)),
+
 	async execute(interaction) {
         let reqID = interaction.options.data.find(arg => arg.name === "remid").value; //requested id
         let discID = interaction.member.id;
-
-        //let res = await db.queryReminder('SELECT * FROM reminders WHERE discID = $1', [discID])
         
         let res = await db.queryReminder("SELECT * FROM reminders WHERE discID = $1 AND id = $2", [discID, reqID]); //makes sure the id belongs to the user attempting to delete it
         

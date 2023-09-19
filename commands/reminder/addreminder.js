@@ -80,8 +80,8 @@ module.exports = {
         let channelID = interaction.channelId;
 
         const nonoterms = [/@everyone/i, /@here/i]; //no funny @everyone @here
-        for (nonoterm of nonoterms) {
-            if (reminderMemo.search(nonoterm) >= 0) {
+        for (let nonoterm of nonoterms) {
+            if (reminderMemo.search(nonoterm) > 0) {
                 interaction.reply({content: `no, fuck off <@${discID}>`});
                 return;
             }
@@ -133,23 +133,24 @@ module.exports = {
 
         let replyArray = []; //used for displaying the due time
 
-        //divide the total amount of ms by chunks of amount of ms of weeks, days, hours and minutes
+        //divide the total amount of ms by chunks of amount of ms in weeks, days, hours and minutes
         //then convert to amount of weeks, days, hours and minutes
         for (let i = regexes.length - 1; i >= 0; i--) {
-            if (futureDateInMillis / regexes[i].amountOfMs >= 1) {
-                let result = parseInt(futureDateInMillis / regexes[i].amountOfMs);
-                futureDateInMillis -= result * regexes[i].amountOfMs;
+            if (futureDateInMillis / regexes[i].amountOfMs < 1) continue;
+            
+            let result = parseInt(futureDateInMillis / regexes[i].amountOfMs);
+            futureDateInMillis -= result * regexes[i].amountOfMs;
     
-                //the display names for the regexes are in plural ("minutes, hours and such")
-                //which doesn't work if there's only 1 minute or 1 hour or such
-                //so if it's not plural, cut off the last "s" on the words
-                if (result == 1) {
-                    replyArray.push(`1 ${regexes[i].name.slice(0, regexes[i].name.length - 1)}`);
-                }
-                else {
-                    replyArray.push(`${result} ${regexes[i].name}`);
-                }
+            //the display names for the regexes are in plural ("minutes, hours and such")
+            //which doesn't work if there's only 1 minute or 1 hour or such
+            //so if it's not plural, cut off the last "s" on the words
+            if (result == 1) {
+                replyArray.push(`1 ${regexes[i].name.slice(0, regexes[i].name.length - 1)}`);
             }
+            else {
+                replyArray.push(`${result} ${regexes[i].name}`);
+            }
+            
         }
 
         const discTimestamp = Math.floor(dueDate.getTime()/1000); //discord timestamp to show date in the user's timezone

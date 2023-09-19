@@ -1,10 +1,20 @@
 const { SlashCommandBuilder, time } = require('@discordjs/builders');
 const db = require('../../db/index');
 
+class WDHM {
+        constructor(name, amountOfMS) {
+                this.name = name;
+                this.amountOfMS = amountOfMS;
+        };
+        name = "";
+        amountOfMS = 60000;
+}
+
 module.exports = {
 	data: new SlashCommandBuilder()
                 .setName(`showreminders`)
                 .setDescription(`aaaaaaaaaaaa`),
+
 	async execute(interaction) {
                 let discID = interaction.member.id;
 
@@ -28,52 +38,29 @@ module.exports = {
                         const millisHour = 3600000; //number of milliseconds in an hour
                         const millisMin = 60000; //number of milliseconds in a minute
 
-                        if (timeDiff / millisWeek > 1) {
-                                let weeks = parseInt(timeDiff / millisWeek);
-                                timeDiff %= millisWeek;
+                        let millisArray = [
+                                new WDHM ("weeks", millisWeek), 
+                                new WDHM ("days", millisDay), 
+                                new WDHM ("hours", millisHour), 
+                                new WDHM ("minutes", millisMin)
+                        ];
 
-                                if (weeks == 1) {
-                                        replyArray.push(`1 week`);
-                                }
+                        for (let i of millisArray) {
+                                if (timeDiff / i.amountOfMS < 1) continue;
+
+                                let amount = parseInt(timeDiff / i.amountOfMS);
+                                timeDiff %= i.amountOfMS;
+
+                                if (amount == 1) {
+                                        replyArray.push(`1 ${i.name.slice(0, i.name.length - 1)}`);
+                                }                                        
                                 else {
-                                        replyArray.push(`${weeks} week`);
+                                               replyArray.push(`${amount} ${i.name}`);
                                 }
                         }
-                        if (timeDiff / millisDay > 1) {
-                                let days = parseInt(timeDiff / millisDay);
-                                timeDiff %= millisDay;
 
-                                if (days == 1) {
-                                        replyArray.push(`1 day`);
-                                }
-                                else {
-                                        replyArray.push(`${days} days`);
-                                }
-                        }
-                        if (timeDiff / millisHour > 1) {
-                                let hours = parseInt(timeDiff / millisHour);
-                                timeDiff %= millisHour;
-
-                                if (hours == 1) {
-                                        replyArray.push(`1 hour`);
-                                }
-                                else {
-                                        replyArray.push(`${hours} hours`);
-                                }
-                        }
-                        if (timeDiff / millisMin > 1) {
-                                let mins = parseInt(timeDiff / millisMin);
-                                timeDiff %= millisMin;
-
-                                if (mins == 1) {
-                                        replyArray.push(`1 minute`);
-                                }
-                                else {
-                                        replyArray.push(`${mins} minutes`);
-                                }
-                        }
-                        else {
-                                replyArray.push(`less than 1 minute`); //idk failsafe i guess
+                        if (replyArray.length == 0) {
+                                replyArray.push("less than 1 minute.");
                         }
 
                         output += 
