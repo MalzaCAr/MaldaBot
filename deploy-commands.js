@@ -47,7 +47,7 @@ module.exports = {
 			await rest.put(
 				Routes.applicationGuildCommands(clientId, guildId),
 				{ body: commands },
-			).then(() => console.log('commands good yes'));
+			).then(() => console.log('\ncommands good yes'));
 		} catch (error) {
 			console.error(error);
 		}

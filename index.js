@@ -47,7 +47,7 @@ const commandFolders = fs.readdirSync('./commands');
 var emojis;
 client.once('ready', async() => {
 	await deployCommands(); 
-	console.log('eeeeeeeeeeeeeeeeeeee\n'); //bot ready
+	console.log('bot good yes'); //bot ready
 
 	emojis = (client.emojis.cache.map((e) => {  //creates a list of every emoji in the server
 		return `${e}` //`${e} **-** \`:${e.name}:\``

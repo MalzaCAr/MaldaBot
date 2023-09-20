@@ -13,18 +13,20 @@ class keywordRegex {
     name = "minute"; 
 }
 
+const tableName = "reminders";
+
 
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName(`addreminder`)
-        .setDescription(`Adds a new reminder. Type "help" in the time field`)
-
-        .addStringOption(option => option.setName('memo')
-        .setDescription('The text you want to be displayed when the reminder is due')
-        .setRequired(true))
+        .setDescription(`Adds a new reminder.`)
         
         .addStringOption(option => option.setName('time')
-        .setDescription('Due date; Type "help" to see how to use this field')
+        .setDescription('Due date (type "help" to see how to use this field)')
+        .setRequired(true))
+        
+        .addStringOption(option => option.setName('memo')
+        .setDescription('The text you want to be displayed when the reminder is due')
         .setRequired(true)),
         //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 
@@ -58,12 +60,12 @@ module.exports = {
         //List of regexes for the keywords for time input
         //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
         //Also make sure to go from smallest unit of time to biggest, otherwise rip code
-        let minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
-        let hourRegex = [/hours/i, /hour/i, /h/i];
-        let dayRegex = [/days/i, /day/i, /d/i];
-        let weekRegex = [/weeks/i, /week/i, /w/i];
+        const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
+        const hourRegex = [/hours/i, /hour/i, /h/i];
+        const dayRegex = [/days/i, /day/i, /d/i];
+        const weekRegex = [/weeks/i, /week/i, /w/i];
 
-        let regexes = [
+        const regexes = [
             new keywordRegex(minRegex, 60000, "minutes"), //mins
             new keywordRegex(hourRegex, 3600000, "hours"), //hours
             new keywordRegex(dayRegex, 86400000, "days"), //days
@@ -92,13 +94,13 @@ module.exports = {
         timeString = timeString.replace(/ /g, ""); //fuck spaces too
 
         if (timeString == "help") {
-            await interaction.reply({content:"Type in a number followed by a keyword such as 'minutes', 'mins', 'm' etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`."/*, ephemeral: true*/});
+            await interaction.reply({content:"Type in a number followed by a keyword such as `minutes`, `mins`, `m` etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`."/*, ephemeral: true*/});
             await interaction.followUp({content: "Example: '5 weeks 1 day 12 hours 30 mins', \nor: '5w1d12h30m'"/*, ephemeral: true*/});
             return;
         }
 
         let reminderCap = 10; //the amount of reminders one can have at a time
-        let res = await db.queryReminder(`SELECT * FROM reminders WHERE discid = $1`, [discID]);
+        let res = await db.queryReminder(`SELECT * FROM ${tableName} WHERE discid = $1`, [discID]);
 
         if (res.rowCount > reminderCap) {
             interaction.reply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
@@ -122,7 +124,7 @@ module.exports = {
         dueDate.setTime(currentDate.getTime() + futureDateInMillis);
 
         try {
-            res = await db.queryReminder(`INSERT INTO reminders (discID, nickname, memo, dueTime, channelID) VALUES ($1, $2, $3, $4, $5)`, [
+            res = await db.queryReminder(`INSERT INTO ${tableName} (discID, nickname, memo, dueTime, channelID) VALUES ($1, $2, $3, $4, $5)`, [
                 discID, nickname, reminderMemo, dueDate.toJSON(), channelID
             ])
         } catch (err) {
