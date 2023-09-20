@@ -36,7 +36,7 @@ module.exports = {
                 for (let i of regex.regexArr) {
                     position = inputString.search(i);
         
-                    if (position < 0) continue; //search returns -1 if not found, so checking that
+                    if (position == -1) continue; //search returns -1 if not found, so checking that
         
                     let number = ""; 
         
@@ -63,9 +63,6 @@ module.exports = {
         let dayRegex = [/days/i, /day/i, /d/i];
         let weekRegex = [/weeks/i, /week/i, /w/i];
 
-        //my regex for funny
-        const malzaRe = /<@274853598280810496>/
-
         let regexes = [
             new keywordRegex(minRegex, 60000, "minutes"), //mins
             new keywordRegex(hourRegex, 3600000, "hours"), //hours
@@ -73,19 +70,22 @@ module.exports = {
             new keywordRegex(weekRegex, 604800000, "weeks") //weeks
         ];
 
-        const reminderMemo = interaction.options.data.find(arg => arg.name === 'memo').value;
+        let reminderMemo = interaction.options.data.find(arg => arg.name === 'memo').value;
 
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
         let channelID = interaction.channelId;
 
-        const nonoterms = [/@everyone/i, /@here/i]; //no funny @everyone @here
+        const nonoterms = [/@everyone/i, /@here/i, /<@&\d+>/g]; //no funny @everyone @here, or role pings
         for (let nonoterm of nonoterms) {
-            if (reminderMemo.search(nonoterm) > 0) {
+            if (reminderMemo.search(nonoterm) != -1) {
                 interaction.reply({content: `no, fuck off <@${discID}>`});
                 return;
             }
         }
+
+        const mentionRegex = /<@\d+>/g;
+        reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); //replaces any ping in the reminder with a ping   of the command user, we do a little bit of trolling
 
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
         timeString = timeString.toLowerCase(); //fuck case sensitivity lmao
