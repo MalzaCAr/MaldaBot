@@ -10,5 +10,6 @@ module.exports = {
 		await interaction.reply({content: "Thank you for putting me out of my misery"});
 		console.log("bot fucking died");
 		interaction.client.destroy();
+		process.exit();
 	},
 };
