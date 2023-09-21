@@ -53,7 +53,7 @@ client.once('ready', async() => {
 		return `${e}` //`${e} **-** \`:${e.name}:\``
 	}));
 });
-
+//a
 client.on('messageCreate', message => { //ignore this lmao, having a bit of fun in my dev server
     if (message.author.bot) return false;
 
