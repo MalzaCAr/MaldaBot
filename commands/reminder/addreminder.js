@@ -28,7 +28,7 @@ module.exports = {
         .addStringOption(option => option.setName('memo')
         .setDescription('The text you want to be displayed when the reminder is due')
         .setRequired(true)),
-        //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+        //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator), //ppl in server are assholes lol
 
 	async execute(interaction) {
         function keywordSearch(inputString) {

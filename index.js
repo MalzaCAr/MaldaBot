@@ -63,9 +63,18 @@ client.on('messageCreate', message => { //ignore this lmao, having a bit of fun 
 	}
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
-		var randomID = Math.floor(Math.random() * emojis.length);
-		message.channel.send(`<@${message.author.id}>`);
+		let randomID = Math.floor(Math.random() * emojis.length);
+		let theCulprit = message.author.id
+		message.channel.send(`<@${theCulprit}>`);
 		message.channel.send(emojis[randomID]);
+
+		let pingTimestamp = new Date(Date.now());
+		pingTimestamp.setTime(pingTimestamp.getTime() + 10000)
+
+		async function trainer() {
+			res = await queryReminder("INSERT INTO beeTrainer (discID, pingTime) VALUES ($1, $2)", [theCulprit, pingTimestamp.toJSON])
+		}
+		
 	}
 
     if (message.mentions.has(client.user.id)) {
@@ -120,19 +129,32 @@ setInterval(async function() {
 	let currentDate = new Date(Date.now());
 
 	let res = await queryReminder("SELECT * FROM reminders WHERE duetime < $1", [currentDate]);
+ 
+	if (res.rowCount != 0) { 
+		for (let row = 0; row < res.rowCount; row++) { //send all
+			const channel = await client.channels.cache.get(res.rows[row].channelid);
+			channel.send(`<@${res.rows[row].discid}>: ${res.rows[row].memo}`);
+		}	
 
-	if (res.rowCount == 0) return; //if there are no due reminders, exit the function
-
-	for (let row = 0; row < res.rowCount; row++) { //send all
-		const channel = await client.channels.cache.get(res.rows[row].channelid);
-		channel.send(`<@${res.rows[row].discid}>: ${res.rows[row].memo}`);
-	}	
-
-	try {
-		res = await queryReminder("DELETE FROM reminders WHERE duetime < $1", [currentDate]);
-	} catch (err) {
-		console.log(err);
+		try {
+			res = await queryReminder("DELETE FROM reminders WHERE duetime < $1", [currentDate]);
+		} catch (err) {
+			console.log(err);
+		}
 	}
+
+	res = await queryReminder("SELECT * FROM beeTrainer WHERE pingTime < $1", [currentDate])
+
+	if (res.rowCount != 0) {
+		for (let row = 0; row < res.rowCount; row++) {
+			const channel = await client.channels.cache.get("815546700072615968");
+			channel.send(`<@${res.rows[row].discID}>`)
+		}
+
+		res = await queryReminder("DELETE FROM reminders WHERE pingTime < $1", [currentDate])
+	}
+
+	
 }, the_interval);
 
 // Login to Discord with your client's token
