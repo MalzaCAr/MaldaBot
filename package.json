@@ -5,11 +5,13 @@
     "discord-api-types": "^0.33.3",
     "discord.js": "^13.7.0",
     "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "mime": "^3.0.0",
     "mysql": "^2.18.1",
     "mysql2": "^2.3.3",
-    "pg": "^8.7.3",
+    "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
+    "pgtools": "^1.0.1",
     "postgres": "^3.2.4",
     "sequelize": "^6.20.1",
     "uwuifier": "^4.0.5"
@@ -18,7 +20,12 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pg:init": "pg_ctl init -D db",
+    "pg:start": "pg_ctl -D db start",
+    "pg:createdb": "createdb -h 127.0.0.1 app",
+    "pg:stop": "pg_ctl -D db stop",
+    "start": "NODE_ENV=development && node index.js"
   },
   "author": "",
   "license": "ISC",

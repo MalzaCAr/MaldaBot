@@ -4,9 +4,66 @@ const path = require('node:path');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const { deployCommands } = require ('./deploy-commands');
-const { queryReminder } = require('./db');
+const { queryReminder} = require('./db');
+const { isNull } = require('node:util');
 //const { EventEmitter } = require('node:stream');
 //const { syncBuiltinESMExports } = require('node:module');
+
+class Node {
+    constructor(discID, timeStamp, next = null) {
+        this.discID = discID;
+        this.timeStamp = timeStamp;
+        this.next = next;
+    }
+}
+
+class linkedList {
+    constructor() {
+        this.head = null;
+        this.size = 0;
+    }
+
+    insertHead(discID, timeStamp) {
+        this.head = new Node(discID, timeStamp, this.head);
+        this.size++
+    }
+
+    pingshit(currentDate) {
+		let pings = []; //ping array to return
+        let current = this.head; 
+		if (current == null) return pings; //if the list is empty, get the fuck out
+
+		let previous;
+		while (current.timeStamp < currentDate) { //linked lists give me a headache
+			pings.push(current.discID);
+			this.size--;
+			this.head = current.next;
+			current = current.next;
+
+			if (current == null) return pings; //if the next node is empty, aka the current one now, gtfo
+		};
+		//this executes if the head isn't due yet
+		previous = current; 
+		current = current.next;
+		if (current == null) return pings; //same as above
+
+		//otherwise, check nodes after the head
+		do {
+			if (current.timeStamp < currentDate) { 
+				pings.push(current.discID);
+				this.size--;
+				previous.next = current.next; //we "delete" a node by making the previous node point to the next node instead of this current node
+			}
+			else {
+				previous = current; //move the previous to the current one, then move the current to the next one
+			}
+			current = current.next;
+
+		} while (current.next != null); //repeat until you reach the end
+
+		return pings;
+    }
+}
 
 // Create a new client instance
 const serverIntents = new Intents();
@@ -25,12 +82,6 @@ client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
 const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-// for (const file of commandFiles) { //load all files
-// 	const filePath = path.join(commandsPath, file);
-// 	const command = require(filePath);
-// 	client.commands.set(command.data.name, command);
-// }
-
 const commandFolders = fs.readdirSync('./commands');
 	for (const folder of commandFolders) {
 		const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
@@ -44,16 +95,20 @@ const commandFolders = fs.readdirSync('./commands');
 	}
 
 // When the client is ready, run this code (only once)
+const pingList = new linkedList();
 var emojis;
 client.once('ready', async() => {
 	await deployCommands(); 
 	console.log('bot good yes'); //bot ready
 
 	emojis = (client.emojis.cache.map((e) => {  //creates a list of every emoji in the server
-		return `${e}` //`${e} **-** \`:${e.name}:\``
+		return `${e}` 
 	}));
+
+	const channel = client.channels.cache.get('815546700072615968');
+	channel.send ("I'm back, bitches");
 });
-//a
+
 client.on('messageCreate', message => { //ignore this lmao, having a bit of fun in my dev server
     if (message.author.bot) return false;
 
@@ -68,18 +123,18 @@ client.on('messageCreate', message => { //ignore this lmao, having a bit of fun 
 		message.channel.send(`<@${theCulprit}>`);
 		message.channel.send(emojis[randomID]);
 
-		let pingTimestamp = new Date(Date.now());
-		pingTimestamp.setTime(pingTimestamp.getTime() + 10000)
+		let min = 5 * 60 * 1000; //number of ms in 5 minutes
+		let max = 12 * 60 * 60 * 1000; //number of ms in 12 hours
+		let futurePingDate = new Date(Date.now()).getTime() + Math.random() * (max - min) + min;
 
-		async function trainer() {
-			res = await queryReminder("INSERT INTO beeTrainer (discID, pingTime) VALUES ($1, $2)", [theCulprit, pingTimestamp.toJSON])
-		}
+		let pingDate = futurePingDate;
 		
+		pingList.insertHead(theCulprit, pingDate);
 	}
 
     if (message.mentions.has(client.user.id)) {
 		let authorid = message.author.id;
-		//console.log(message.author.id);
+
 		switch (authorid) {
 			case "467248563072663562": //lucas
 				message.channel.send(`<a:phelpetuwu:994305191895642194>`);
@@ -119,17 +174,22 @@ client.on('interactionCreate', async interaction => {
 		await command.execute(interaction);
 	} catch (error) {
 		console.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 	}
 });
 
 //the following part handles the triggering of reminders
-let minutes = 0.1, the_interval = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
+let minutes = 0.5, the_interval = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
 setInterval(async function() {
 	let currentDate = new Date(Date.now());
 
-	let res = await queryReminder("SELECT * FROM reminders WHERE duetime < $1", [currentDate]);
- 
+	let res;
+	try {
+		res = await queryReminder("SELECT * FROM reminders WHERE duetime < $1", [currentDate]);
+	} catch (err) {
+		console.log (err);
+		return;
+	};
+
 	if (res.rowCount != 0) { 
 		for (let row = 0; row < res.rowCount; row++) { //send all
 			const channel = await client.channels.cache.get(res.rows[row].channelid);
@@ -143,17 +203,15 @@ setInterval(async function() {
 		}
 	}
 
-	res = await queryReminder("SELECT * FROM beeTrainer WHERE pingTime < $1", [currentDate])
+	const channel = client.channels.cache.get('815546700072615968');
+	
+	pings = pingList.pingshit(currentDate.getTime());
 
-	if (res.rowCount != 0) {
-		for (let row = 0; row < res.rowCount; row++) {
-			const channel = await client.channels.cache.get("815546700072615968");
-			channel.send(`<@${res.rows[row].discID}>`)
-		}
-
-		res = await queryReminder("DELETE FROM reminders WHERE pingTime < $1", [currentDate])
+	if (pings.length != 0) {
+		for (ping of pings) {
+			channel.send(`<@${ping}>`);
+		} 
 	}
-
 	
 }, the_interval);
 

@@ -8,7 +8,7 @@ module.exports = {
 	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		await interaction.reply({content: "Thank you for putting me out of my misery"});
-		console.log("bot fucking died");
+		console.log("bot fucking killed itself :(");
 		interaction.client.destroy();
 		process.exit();
 	},

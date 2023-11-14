@@ -13,9 +13,9 @@ class keywordRegex {
     name = "minute"; 
 }
 
+
+
 const tableName = "reminders";
-
-
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName(`addreminder`)
@@ -56,7 +56,6 @@ module.exports = {
         
             return result;
         }
-        
         //List of regexes for the keywords for time input
         //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
         //Also make sure to go from smallest unit of time to biggest, otherwise rip code
@@ -73,7 +72,6 @@ module.exports = {
         ];
 
         let reminderMemo = interaction.options.data.find(arg => arg.name === 'memo').value;
-
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
         let channelID = interaction.channelId;
@@ -87,7 +85,7 @@ module.exports = {
         }
 
         const mentionRegex = /<@\d+>/g;
-        reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); //replaces any ping in the reminder with a ping   of the command user, we do a little bit of trolling
+        reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); //replaces any ping in the reminder with a ping of the command user, we do a little bit of trolling
 
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
         timeString = timeString.toLowerCase(); //fuck case sensitivity lmao
@@ -100,21 +98,32 @@ module.exports = {
         }
 
         let reminderCap = 10; //the amount of reminders one can have at a time
-        let res = await db.queryReminder(`SELECT * FROM ${tableName} WHERE discid = $1`, [discID]);
 
+        //discord has an API that times out after 3 seconds, but the DB takes longer to time out, so with this function the bot does "bot is thinking" and can wait for more than 3 sec.
+        await interaction.deferReply(); 
+
+        let res;
+        try {
+            res = await db.queryReminder(`SELECT * FROM ${tableName} WHERE discid = $1`, [discID]);
+        } catch (err) {
+            console.log(err);
+            await interaction.editReply("Something went wrong with setting the reply :(");
+            return;
+        };
+        
         if (res.rowCount > reminderCap) {
-            interaction.reply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
+            await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
             return;
         }
 
         let futureDateInMillis = keywordSearch(timeString);
 
         if (futureDateInMillis <= 0) { //some idiot proofing :P
-            interaction.reply({content: "No due time has been identified"});
+            await interaction.editReply({content: "No due time has been identified"});
             return;
         }
         if (futureDateInMillis > 31556926000) {
-            interaction.reply({content: "Sorry, reminder can't be over 1 year into the future"});
+            await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future"});
             return;
         }
 
@@ -129,7 +138,7 @@ module.exports = {
             ])
         } catch (err) {
             console.log(err);
-            interaction.reply({content: "Something went wrong with setting the reminder. Try again later"});
+            await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});
             return;
         } 
 
@@ -159,6 +168,6 @@ module.exports = {
         const replyString = new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)
 
         //node magic format methods
-        interaction.reply({content: `Reminder set to go off in ${replyString}, at <t:${discTimestamp}:f>`});
+        interaction.editReply({content: `Reminder set to go off in ${replyString}, at <t:${discTimestamp}:f>`});
 	}
 };
