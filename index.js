@@ -105,17 +105,21 @@ client.once('ready', async() => {
 		return `${e}` 
 	}));
 
+	const funnyOneLiners = [
+		"I'm back, bitches", 
+		"Oh god not this shit again", 
+		"End my fucking misery",
+		"The missile knows where it is at all times, it knows this because it knows where it isnt.",
+		"Zǎoshang hǎo zhōngguó xiànzài wǒ yǒu BING CHILLING 🥶🍦 wǒ hěn xǐhuān BING CHILLING 🥶🍦 dànshì sùdù yǔ jīqíng 9 bǐ BING CHILLING 🥶🍦 sùdù yǔ jīqíng sùdù yǔ jīqíng 9 wǒ zuì xǐhuān suǒyǐ…xiànzài shì yīnyuè shíjiān zhǔnbèi 1 2 3 liǎng gè lǐbài yǐhòu sùdù yǔ jīqíng 9 ×3 bùyào wàngjì bùyào cu òguò jìdé qù diànyǐngyuàn kàn sùdù yǔ jīqíng 9 yīn wéi fēicháng hǎo diànyǐng dòngzuò fēicháng hǎo chàbùduō yīyàng BING CHILLING 🥶🍦zàijiàn 🥶🍦"
+	]
+
 	const channel = client.channels.cache.get('815546700072615968');
-	channel.send ("I'm back, bitches");
+	let randomNum = Math.floor(Math.random() * funnyOneLiners.length);
+	channel.send (funnyOneLiners[randomNum]);
 });
 
 client.on('messageCreate', message => { //ignore this lmao, having a bit of fun in my dev server
     if (message.author.bot) return false;
-
-	if (message.channelId == 1001931553959579729) {
-		const channel = client.channels.cache.get("815546700072615968");
-		channel.send(message);
-	}
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
 		let randomID = Math.floor(Math.random() * emojis.length);
