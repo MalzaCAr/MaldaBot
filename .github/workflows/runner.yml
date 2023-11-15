@@ -12,6 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Pull from repository
+        run: git pull
+
       - name: Run Container
         run: docker compose up -d --build
         env:
