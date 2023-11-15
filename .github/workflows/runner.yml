@@ -14,7 +14,9 @@ jobs:
       #- uses: actions/checkout@v2
 
       - name: Pull from repository
-        run: git pull --force
+        run: 
+          cd MaldaBot
+          git pull --force
 
       - name: Run Container
         run: docker compose up -d --build
