@@ -7,7 +7,7 @@ on:
 jobs:
   run:
     runs-on: self-hosted
-    #environment: production eeeeeeeeeeee 1
+    #environment: production eeeeeeeeeeee 2
     permissions: read-all
 
     steps:
