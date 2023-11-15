@@ -12,7 +12,6 @@ jobs:
 
     steps:
       - name: a
-        #run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
         run: git config pull.rebase true
       - name: b    
         run: git rebase --skip
