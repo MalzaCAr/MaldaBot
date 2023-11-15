@@ -11,13 +11,7 @@ jobs:
     permissions: read-all
 
     steps:
-      #- uses: actions/checkout@v2
-
-      - name: kys kys kys kys kys
-        run: cd
-
-      - name: fucking kill yourself die die die die die die
-        run: cd /home/fran/MaldaBot
+      - uses: actions/checkout@v3
 
       - name: Pull from repository
         run: git pull --force
