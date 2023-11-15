@@ -17,7 +17,7 @@ jobs:
         run: cd
 
       - name: fucking kill yourself die die die die die die
-        run: cd MaldaBot
+        run: cd /home/fran/MaldaBot
 
       - name: Pull from repository
         run: git pull --force
