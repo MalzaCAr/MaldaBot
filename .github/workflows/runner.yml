@@ -13,10 +13,11 @@ jobs:
     steps:
       #- uses: actions/checkout@v2
 
+      - name: fucking kill yourself die die die die die die
+        run: cd MaldaBot
+
       - name: Pull from repository
-        run: 
-          cd MaldaBot
-          git pull --force
+        run: git pull --force
 
       - name: Run Container
         run: docker compose up -d --build
