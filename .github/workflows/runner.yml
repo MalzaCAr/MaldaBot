@@ -15,8 +15,7 @@ jobs:
       - name: Run Container
         run: docker compose up -d --build
         env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }},
-          DBURL: ${{ secrets.DBURL }}
+          TOKEN: ${{ secrets.DISCORD_TOKEN }}
 
       - name: Cleanup Unused Images
         run: docker image prune -f
