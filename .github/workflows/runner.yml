@@ -12,7 +12,8 @@ jobs:
 
     steps:
       - name: a
-        run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
+        #run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
+        run: git config pull.rebase true
       - name: Pull from repository
         run: git pull git@github.com:MalzaCAr/MaldaBot.git
 
