@@ -6,6 +6,6 @@ module.exports = {
 		.setDescription('fat stupid idiot bot work bruh'),
 	async execute(interaction) {
 		console.log(interaction.member.user.username);
-		await interaction.reply('a');
+		await interaction.reply('e');
 	},
 };
