@@ -11,6 +11,9 @@ jobs:
     permissions: read-all
 
     steps:
+      - name: a
+        run: git checkout -b temp HEAD@{1}
+
       - name: Pull from repository
         run: git pull --force
 
