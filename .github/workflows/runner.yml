@@ -7,13 +7,13 @@ on:
 jobs:
   run:
     runs-on: self-hosted
-    environment: production
+    #environment: production
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Pull from repository
-        run: git pull
+        run: git fetch
 
       - name: Run Container
         run: docker compose up -d --build
