@@ -15,8 +15,8 @@ jobs:
         run: git config pull.rebase true
       - name: Pull from repository
         run: git pull git@github.com:MalzaCAr/MaldaBot.git
-      - name: b    
-        run: git rebase --skip
+      #- name: b    
+      #  run: git rebase --skip
       
 
       - uses: actions/checkout@v3
