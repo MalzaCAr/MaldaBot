@@ -80,7 +80,6 @@ const client = new Client({ intents: serverIntents });
 
 client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 const commandFolders = fs.readdirSync('./commands');
 	for (const folder of commandFolders) {
@@ -96,7 +95,7 @@ const commandFolders = fs.readdirSync('./commands');
 
 // When the client is ready, run this code (only once)
 const pingList = new linkedList();
-var emojis;
+let emojis;
 client.once('ready', async() => {
 	await deployCommands(); 
 	console.log('bot good yes'); //bot ready
@@ -118,22 +117,19 @@ client.once('ready', async() => {
 	channel.send (funnyOneLiners[randomNum]);
 });
 
-client.on('messageCreate', message => { //ignore this lmao, having a bit of fun in my dev server
+client.on('messageCreate', message => {
     if (message.author.bot) return false;
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
 		let randomID = Math.floor(Math.random() * emojis.length);
 		let theCulprit = message.author.id
-		message.channel.send(`<@${theCulprit}>`);
 		message.channel.send(emojis[randomID]);
 
 		let min = 5 * 60 * 1000; //number of ms in 5 minutes
 		let max = 12 * 60 * 60 * 1000; //number of ms in 12 hours
 		let futurePingDate = new Date(Date.now()).getTime() + Math.random() * (max - min) + min;
-
-		let pingDate = futurePingDate;
 		
-		pingList.insertHead(theCulprit, pingDate);
+		pingList.insertHead(theCulprit, futurePingDate);
 	}
 
     if (message.mentions.has(client.user.id)) {

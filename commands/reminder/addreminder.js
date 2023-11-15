@@ -13,8 +13,6 @@ class keywordRegex {
     name = "minute"; 
 }
 
-
-
 const tableName = "reminders";
 module.exports = {
 	data: new SlashCommandBuilder()
