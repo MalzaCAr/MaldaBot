@@ -12,10 +12,9 @@ jobs:
 
     steps:
       - name: a
-        run: git checkout -b temp HEAD@{1}
-
+        run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
       - name: Pull from repository
-        run: git pull --force
+        run: git pull 
 
       - uses: actions/checkout@v3
 
