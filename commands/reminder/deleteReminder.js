@@ -13,10 +13,11 @@ module.exports = {
         let reqID = interaction.options.data.find(arg => arg.name === "remid").value; //requested id
         let discID = interaction.member.id;
         
-        let res = await db.queryReminder("SELECT * FROM reminders WHERE discID = $1 AND id = $2", [discID, reqID]); //makes sure the id belongs to the user attempting to delete it
+        //returns a reminder that belongs to the user
+        let res = await db.queryReminder("SELECT * FROM reminders WHERE discID = $1 AND id = $2", [discID, reqID]);
         
         if (res.rows[0] === undefined) { //checks if the query found an id matching the requested id
-            interaction.reply({content: `The id ${reqID} doesn't match any of your reminder ids`});
+            interaction.reply({content: `The id "${reqID}" doesn't match any of your reminder ids`});
             return;
         }
         

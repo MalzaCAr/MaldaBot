@@ -54,6 +54,7 @@ module.exports = {
         
             return result;
         }
+
         //List of regexes for the keywords for time input
         //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
         //Also make sure to go from smallest unit of time to biggest, otherwise rip code
@@ -95,24 +96,8 @@ module.exports = {
             return;
         }
 
-        let reminderCap = 10; //the amount of reminders one can have at a time
-
         //discord has an API that times out after 3 seconds, but the DB takes longer to time out, so with this function the bot does "bot is thinking" and can wait for more than 3 sec.
         await interaction.deferReply(); 
-
-        let res;
-        try {
-            res = await db.queryReminder(`SELECT * FROM ${tableName} WHERE discid = $1`, [discID]);
-        } catch (err) {
-            console.log(err);
-            await interaction.editReply("Something went wrong with setting the reply :(");
-            return;
-        };
-        
-        if (res.rowCount > reminderCap) {
-            await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
-            return;
-        }
 
         let futureDateInMillis = keywordSearch(timeString);
 
@@ -122,6 +107,20 @@ module.exports = {
         }
         if (futureDateInMillis > 31556926000) {
             await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future"});
+            return;
+        }
+
+        let res, reminderCap = 10; //the amount of reminders one can have at a time
+        try {
+            res = await db.queryReminder(`SELECT COUNT(id) FROM ${tableName} WHERE discid = $1`, [discID]); //return the number of rows the user has
+        } catch (err) {
+            console.log(err);
+            await interaction.editReply("Something went wrong with setting the reply :(");
+            return;
+        };
+        
+        if (res.rows[0].count > reminderCap) {
+            await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
             return;
         }
 
