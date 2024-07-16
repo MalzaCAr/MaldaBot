@@ -1,0 +1,21 @@
+ADHD POINT SYSTEM TRACKER
+TL;DR: task manager but with an added point system basically
+
+FEATURE LIST:
+Barebones functionality: 
+    - you are able to add, view, complete or delete tasks.
+
+    - each task is worth x amount of points depending on the urgency/importance of the task, with a certain goal for each day.
+
+    - if you don't meet the goal by midnight, the difference will be saved as debt and applied to the next day.
+
+    - when you add a task, you'll have ~ an hour to delete it in case of a mistake.
+      if you don't delete it by then, you'll instead have to mark the task as not complete. 
+      im still undecided on whether not completing tasks will have any consequances.
+    
+    - at the end of the week, you'll get a stat screen of your completed and not complete tasks.
+
+QoL stuff:
+    - multiple lists of tasks for different things e.g. a list for schoolwork and a list for cleaning stuff in your apartment
+
+    - the ability to add recurring tasks aka tasks that repeat every day/week/month
