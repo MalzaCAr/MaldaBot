@@ -4,10 +4,11 @@ const path = require('node:path');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const { deployCommands } = require ('./deploy-commands');
-const { queryReminder} = require('./db');
 const { isNull } = require('node:util');
 //const { EventEmitter } = require('node:stream');
 //const { syncBuiltinESMExports } = require('node:module');
+
+const { reminders } = require('./db/index');
 
 class Node {
     constructor(discID, timeStamp, next = null) {
@@ -27,14 +28,22 @@ class linkedList {
         this.head = new Node(discID, timeStamp, this.head);
         this.size++
     }
-
+	/*
     pingshit(currentDate) {
 		let pings = []; //ping array to return
         let current = this.head; 
 		if (current == null) return pings; //if the list is empty, get the fuck out
 
-		let previous;
-		while (current.timeStamp < currentDate) { //linked lists give me a headache
+		let previous = null;
+
+		do {
+			if (current.timeStamp < currentDate) {
+				pings.push(current.discID);
+				this.size--;
+				
+			}
+		} while (current.next != null);
+		/*while (current.timeStamp < currentDate) { //linked lists give me a headache
 			pings.push(current.discID);
 			this.size--;
 			this.head = current.next;
@@ -62,7 +71,7 @@ class linkedList {
 		} while (current.next != null); //repeat until you reach the end
 
 		return pings;
-    }
+    }*/
 }
 
 // Create a new client instance
@@ -108,9 +117,7 @@ client.once('ready', async() => {
 		"I'm back, bitches", 
 		"Oh god not this shit again", 
 		"End my fucking misery",
-		"The missile knows where it is at all times, it knows this because it knows where it isnt.",
-		"Zǎoshang hǎo zhōngguó xiànzài wǒ yǒu BING CHILLING 🥶🍦 wǒ hěn xǐhuān BING CHILLING 🥶🍦 dànshì sùdù yǔ jīqíng 9 bǐ BING CHILLING 🥶🍦 sùdù yǔ jīqíng sùdù yǔ jīqíng 9 wǒ zuì xǐhuān suǒyǐ…xiànzài shì yīnyuè shíjiān zhǔnbèi 1 2 3 liǎng gè lǐbài yǐhòu sùdù yǔ jīqíng 9 ×3 bùyào wàngjì bùyào cu òguò jìdé qù diànyǐngyuàn kàn sùdù yǔ jīqíng 9 yīn wéi fēicháng hǎo diànyǐng dòngzuò fēicháng hǎo chàbùduō yīyàng BING CHILLING 🥶🍦zàijiàn 🥶🍦",
-		"can you believe it guys? christmas! just a week away. christmas is in a week. woohoo. i am so happy about this information. christmas, just a week away. oh wow, can you believe it? christmas! just in a week. it got here so fast, christmas!"
+		"Make it stop"
 	]
 
 	const channel = client.channels.cache.get('815546700072615968');
@@ -179,44 +186,42 @@ client.on('interactionCreate', async interaction => {
 });
 
 //the following part handles the triggering of reminders
-let minutes = 0.5, the_interval = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
+let minutes = 0.1, the_interval = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
 setInterval(async function() {
 	let currentDate = new Date(Date.now());
 
 	let res;
 	try {
-		res = await queryReminder("SELECT * FROM reminders WHERE duetime < $1", [currentDate]);
+		let doc = { dueDate: { $lt: currentDate,},};
+		res = await reminders.find(doc);
 	} catch (err) {
 		console.log (err);
 		return;
 	};
 
-	if (res.rowCount != 0) { 
-		for (let row = 0; row < res.rowCount; row++) { //send all
-			const channel = await client.channels.cache.get(res.rows[row].channelid);
-			channel.send(`<@${res.rows[row].discid}>: ${res.rows[row].memo}`);
-		}	
+	for await (const resDoc of res) {
+		const channel = client.channels.cache.get(resDoc.channelID);
+		channel.send(`<@${resDoc.discID}>: ${resDoc.reminderMemo}`);
 
 		try {
-			res = await queryReminder("DELETE FROM reminders WHERE duetime < $1", [currentDate]);
-		} catch (err) {
+			let resDel = await reminders.deleteOne({ _id: resDoc._id });
+			//console.log(resDel);
+		} catch(err) {
 			console.log(err);
 		}
 	}
 
-	const channel = client.channels.cache.get('815546700072615968');
-	
+	/*const channel = client.channels.cache.get('815546700072615968');
+	console.log(pingList);
 	pings = pingList.pingshit(currentDate.getTime());
 
 	if (pings.length != 0) {
 		for (ping of pings) {
 			channel.send(`<@${ping}>`);
 		} 
-	}
+	}*/
 	
 }, the_interval);
-
-
 
 // Login to Discord with your client's token
 client.login(token);

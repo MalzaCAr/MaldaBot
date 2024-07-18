@@ -1,20 +1,24 @@
-const { Pool } = require('pg')
+const { MongoClient } = require("mongodb");
 const dotenv = require('dotenv');
-const { time } = require('@discordjs/builders');
-
 dotenv.config();
 
-const pool = new Pool({
-    connectionString: process.env.DBURL,
-});
+// Replace the uri string with your connection string.
+const uri = process.env.MDBURI;
+const client = new MongoClient(uri);
+
+const database = client.db('stupidIdiotBotDB');
+const reminders = database.collection('reminders');
 
 module.exports = {
-    queryReminder: async(text, params, callback) => {
+    reminders, 
+
+    killClient: async() => {
         try {
-            let res = pool.query(text, params, callback);
-            return res;
-        } catch {
-            return "Failed";
+            await client.close();
+            return "MongoDB Client closed";
+        } catch(err) {
+            return err;
         }
     }
+    
 }

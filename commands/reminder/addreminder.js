@@ -1,6 +1,9 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const db = require('../../db/index');
+const { reminders } = require('../../db/index');
+const { customAlphabet } = require('nanoid');
+
+const nanoid = customAlphabet('1234567890', 8);
 
 class keywordRegex {
     constructor(inputArr, amount, name) {
@@ -96,30 +99,31 @@ module.exports = {
             return;
         }
 
-        //discord has an API that times out after 3 seconds, but the DB takes longer to time out, so with this function the bot does "bot is thinking" and can wait for more than 3 sec.
+        //this does the "the bot is thinking ..." so the command doesn't time out if the db is lagging or smthx
         await interaction.deferReply(); 
 
         let futureDateInMillis = keywordSearch(timeString);
 
         if (futureDateInMillis <= 0) { //some idiot proofing :P
-            await interaction.editReply({content: "No due time has been identified"});
+            await interaction.editReply({content: "Error: Wrong syntax  in `time` field"});
             return;
         }
         if (futureDateInMillis > 31556926000) {
             await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future"});
             return;
         }
-
+        
         let res, reminderCap = 10; //the amount of reminders one can have at a time
         try {
-            res = await db.queryReminder(`SELECT COUNT(id) FROM ${tableName} WHERE discid = $1`, [discID]); //return the number of rows the user has
+            res = await reminders.find({discID: discID});
+            res = await res.toArray();
         } catch (err) {
             console.log(err);
             await interaction.editReply("Something went wrong with setting the reply :(");
             return;
         };
         
-        if (res.rows[0].count > reminderCap) {
+        if (res.length > reminderCap) {
             await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
             return;
         }
@@ -128,11 +132,11 @@ module.exports = {
         let dueDate = new Date(Date.now())
 
         dueDate.setTime(currentDate.getTime() + futureDateInMillis);
-
         try {
-            res = await db.queryReminder(`INSERT INTO ${tableName} (discID, nickname, memo, dueTime, channelID) VALUES ($1, $2, $3, $4, $5)`, [
-                discID, nickname, reminderMemo, dueDate.toJSON(), channelID
-            ])
+            let remid = Number(nanoid());
+            res = await reminders.insertOne({
+                remid, discID, nickname, reminderMemo, dueDate, channelID
+            });
         } catch (err) {
             console.log(err);
             await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});
