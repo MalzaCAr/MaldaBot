@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, time } = require('@discordjs/builders');
-const db = require('../../db/index');
+const { reminders } = require('../../db/index');
 
 class WDHM {
         constructor(name, amountOfMS) {
@@ -18,9 +18,11 @@ module.exports = {
 	async execute(interaction) {
                 let discID = interaction.member.id;
 
-                let res = await db.queryReminder('SELECT * FROM reminders WHERE discID = $1', [discID])
-                
-                if (res.rowCount == 0) {
+                let res = await reminders.find({ discID: discID, });
+
+                res = await res.toArray();
+
+                if (res.length == 0) {
                         interaction.reply({content: "You have no reminders set"});
                         return;
                 }
@@ -38,8 +40,9 @@ module.exports = {
                 ];
 
                 let output = `Your reminders are: \n\n`;
-                for (let row = 0; row < res.rowCount; row++) {
-                        let timeDiff = new Date(res.rows[row].duetime).getTime() - new Date(Date.now()).getTime();
+
+                for (let row = 0; row < res.length; row++) {
+                        let timeDiff = new Date(res[row].dueDate).getTime() - new Date(Date.now()).getTime();
 
                         //this feels like such a stupid way to do this but im also stupid so it is what it is
                         //handles the output message containing in how many weeks/days/hours/minutes is the reminder due
@@ -60,12 +63,12 @@ module.exports = {
                         }
 
                         if (replyArray.length == 0) {
-                                replyArray.push("less than 1 minute.");
+                                replyArray.push("less than 1 minute");
                         }
 
                         output += 
-                        `**${res.rows[row].id}**: ${res.rows[row].memo}\n` + 
-                        `**Due**: in ${new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)}, on <t:${parseInt(res.rows[row].duetime.getTime() / 1000)}:F>\n`;
+                        `**${res[row].remid}**: ${res[row].reminderMemo}\n` + 
+                        `**Due**: in ${new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)}, on <t:${parseInt(res[row].dueDate.getTime() / 1000)}:F>\n`;
                 }
 
                 interaction.reply({content: output/*, ephemeral: true*/});
