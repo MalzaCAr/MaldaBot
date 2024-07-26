@@ -1,4 +1,6 @@
 const { MongoClient } = require("mongodb");
+const { customAlphabet } = require('nanoid');
+const nanoid = customAlphabet('1234567890', 8);
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -36,10 +38,20 @@ const regexes = [
 ];
 
 module.exports = {
+    database,
     reminders,
-    regexes, 
+    regexes,
+    /**
+     * random id generator
+     * @returns {string}
+     */ 
+    nanoid: function() {
+        return nanoid();
+    },
 
-    //used in kys.js to close the client
+    /**
+     * used to kill the mongodb client
+     */
     killClient: async() => {
         try {
             await client.close();
@@ -49,8 +61,13 @@ module.exports = {
         }
     },
 
-    //used to parse an input string and convert it to milliseconds (int)
+    /**
+     * used to parse an input string and convert it to milliseconds (int)
+     * @param {string} inputString //the string you wish to parse
+     * @returns {int}
+     */
     cmdInptToMs: function(inputString) {
+        inputString = inputString.toLowerCase().replace(/ /g, ""); //fuck case sensitivity & spaces
         let result = 0;
         for (let regex of regexes) {
             let position; //position of keyword

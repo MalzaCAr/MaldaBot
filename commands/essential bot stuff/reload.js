@@ -32,7 +32,7 @@ module.exports = {
 		try {
 			const newCommand = require(`../${folderName}/${command.data.name}.js`);
 			interaction.client.commands.set(newCommand.data.name, newCommand);
-			interaction.reply({ content: `Command \`${newCommand.data.name}\` was reloaded!` });
+			interaction.reply({ content: `Command \`${newCommand.data.name}\` was reloaded!`, ephemeral: true});
 		} catch (err) {
 			console.error(err);
 			interaction.reply({ content: `There was an error while reloading a command \`${command.name}\`:\n\`${err.message}\`` });

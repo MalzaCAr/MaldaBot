@@ -1,8 +1,6 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const { reminders, cmdInptToMs, regexes } = require('../../db/index');
-const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('1234567890', 8);
+const { reminders, cmdInptToMs, regexes, nanoid } = require('../../db/index');
 
 const tableName = "reminders";
 module.exports = {
@@ -37,8 +35,6 @@ module.exports = {
         reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); //replaces any ping in the reminder with a ping of the command user, we do a little bit of trolling
 
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
-        timeString = timeString.toLowerCase(); //fuck case sensitivity lmao
-        timeString = timeString.replace(/ /g, ""); //fuck spaces too
 
         if (timeString == "help") {
             await interaction.reply({content:"Type in a number followed by a keyword such as `minutes`, `mins`, `m` etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`."/*, ephemeral: true*/});
@@ -62,8 +58,7 @@ module.exports = {
 
         let res, reminderCap = 10; //the amount of reminders one can have at a time
         try {
-            res = await reminders.find({discID: discID});
-            res = await res.toArray();
+            res = await reminders.find({discID: discID}).toArray();
         } catch (err) {
             console.log(err);
             await interaction.editReply("Something went wrong with setting the reply :(");
