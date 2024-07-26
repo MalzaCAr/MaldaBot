@@ -1,20 +1,8 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const { reminders } = require('../../db/index');
+const { reminders, cmdInptToMs, regexes } = require('../../db/index');
 const { customAlphabet } = require('nanoid');
-
 const nanoid = customAlphabet('1234567890', 8);
-
-class keywordRegex {
-    constructor(inputArr, amount, name) {
-        this.regexArr = this.regexArr.concat(inputArr);
-        this.amountOfMs = amount;
-        this.name = name;
-    };
-    regexArr = [];
-    amountOfMs = 60000; //lowest possible
-    name = "minute"; 
-}
 
 const tableName = "reminders";
 module.exports = {
@@ -32,47 +20,6 @@ module.exports = {
         //.setDefaultMemberPermissions(PermissionFlagsBits.Administrator), //ppl in server are assholes lol
 
 	async execute(interaction) {
-        function keywordSearch(inputString) {
-            let result = 0;
-            for (let regex of regexes) {
-                let position; //position of keyword
-                for (let i of regex.regexArr) {
-                    position = inputString.search(i);
-        
-                    if (position == -1) continue; //search returns -1 if not found, so checking that
-        
-                    let number = ""; 
-        
-                    for (let j = position - 1; j >= 0 && !isNaN(parseInt(timeString[j])); j--) { //goes backwards from keyword until it finds a non-digit
-                        number += inputString[j];
-                    }
-        
-                    if (number.length > 1) { //since the numbers are added backwards, the string must be inverted to display the right number
-                        number = number.split("").reverse().join("")
-                    }
-                    result += number * regex.amountOfMs;
-                    break;
-                } 
-            }
-        
-            return result;
-        }
-
-        //List of regexes for the keywords for time input
-        //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
-        //Also make sure to go from smallest unit of time to biggest, otherwise rip code
-        const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
-        const hourRegex = [/hours/i, /hour/i, /h/i];
-        const dayRegex = [/days/i, /day/i, /d/i];
-        const weekRegex = [/weeks/i, /week/i, /w/i];
-
-        const regexes = [
-            new keywordRegex(minRegex, 60000, "minutes"), //mins
-            new keywordRegex(hourRegex, 3600000, "hours"), //hours
-            new keywordRegex(dayRegex, 86400000, "days"), //days
-            new keywordRegex(weekRegex, 604800000, "weeks") //weeks
-        ];
-
         let reminderMemo = interaction.options.data.find(arg => arg.name === 'memo').value;
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
@@ -99,10 +46,10 @@ module.exports = {
             return;
         }
 
-        //this does the "the bot is thinking ..." so the command doesn't time out if the db is lagging or smthx
+        //this does the "the bot is thinking ..." so the command doesn't time out if the db is lagging or smth
         await interaction.deferReply(); 
 
-        let futureDateInMillis = keywordSearch(timeString);
+        let futureDateInMillis = cmdInptToMs(timeString);
 
         if (futureDateInMillis <= 0) { //some idiot proofing :P
             await interaction.editReply({content: "Error: Wrong syntax  in `time` field"});
@@ -112,7 +59,7 @@ module.exports = {
             await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future"});
             return;
         }
-        
+
         let res, reminderCap = 10; //the amount of reminders one can have at a time
         try {
             res = await reminders.find({discID: discID});
