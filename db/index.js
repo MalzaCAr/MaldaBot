@@ -1,12 +1,12 @@
 const { MongoClient } = require("mongodb");
 const { customAlphabet } = require('nanoid');
-const nanoid = customAlphabet('1234567890', 8);
+const nanoid = customAlphabet('1234567890', 8); //use arabic numbers, use 8 of them
 const dotenv = require('dotenv');
 dotenv.config();
 
 //Reminder stuff
 const uri = process.env.MDBURI;
-const client = new MongoClient(uri);
+const client = new MongoClient(uri, { connectTimeoutMS: 30000 }, { keepAlive: 1});
 
 const database = client.db('stupidIdiotBotDB');
 const reminders = database.collection('reminders');
@@ -62,7 +62,7 @@ module.exports = {
     },
 
     /**
-     * used to parse an input string and convert it to milliseconds (int)
+     * used to parse an input string and convert it to milliseconds (int).
      * @param {string} inputString //the string you wish to parse
      * @returns {int}
      */
@@ -87,8 +87,43 @@ module.exports = {
                 result += number * regex.amountOfMs;
                 break;
             } 
-            return result;
         }
+        return result;
+    },
+
+    /**
+     * Used to convert a given amount of time in milliseconds into relative time from now.
+     * @param {Int} dueDateMs
+     * @returns {String}
+     */
+    msToRelTime: function(dueDateMs) {
+        let timeDiff = new Date(dueDateMs).getTime() - new Date(Date.now()).getTime();
+
+        //this feels like such a stupid way to do this but im also stupid so it is what it is
+        //handles the output message containing in how many weeks/days/hours/minutes is the reminder due
+        let replyArray = [];
+
+        //the array is reversed so the loop divides by bigger time values first
+        for (let i of regexes.reverse()) {
+            if (timeDiff / i.amountOfMs < 1) continue;
+
+            let amount = parseInt(timeDiff / i.amountOfMs);
+            timeDiff %= i.amountOfMs;
+
+            if (amount == 1) {
+                replyArray.push(`1 ${i.name.slice(0, i.name.length - 1)}`);
+            }                                        
+            else {
+                replyArray.push(`${amount} ${i.name}`);
+            }
+        }
+
+        //if the number is smaller than a minute the array will be empty, so just say "less than 1 minute"
+        if (replyArray.length == 0) {
+            replyArray.push("less than 1 minute");
+        }
+
+        return `in ${new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)}, on <t:${Math.floor(dueDateMs/1000)}:F>`;
     }
     
 }

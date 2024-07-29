@@ -3,7 +3,9 @@ TL;DR: task manager but with an added point system basically
 
 FEATURE LIST:
 Barebones functionality: 
-    - you are able to add, view, complete or delete tasks.
+    - a task consists of the requirements, time to complete and point reward
+
+    - you are able to add, view, complete or delete tasks. 
 
     - each task is worth x amount of points depending on the urgency/importance of the task, with a certain goal for each day.
 

@@ -11,13 +11,23 @@ module.exports = {
         .setRequired(true)),
 
 	async execute(interaction) {
-        let discid = interaction.member.id;
-        let users = database.collection("users");
-        let tasks = database.collection("tasks");
-        let toDelete = interaction.options.data.find(arg => arg.name === 'id');
-        
-        let res = await 
+                let discid = BigInt(interaction.member.id);
+                let tasks = database.collection("tasks");
+                let toDelete = interaction.options.data.find(arg => arg.name === 'id').value, task_toDelete;
 
-        interaction.reply({embeds: [resEmbed]/*, ephemeral: true*/});
+                await interaction.deferReply();
+                try {
+                        task_toDelete = await tasks.deleteOne({owner_id: discid, _id: toDelete});
+                } catch (err) {
+                        interaction.editReply({content: "Something went wrong with the deletion of the task."});
+                        console.log(err);
+                        return;
+                }
+                if (task_toDelete.deletedCount == 0) {
+                        interaction.editReply({content: `There is no task with the id ${toDelete}.`});
+                }
+                else {
+                        interaction.editReply({content: `Successfully deleted the task with the id ${toDelete}.`});
+                }
 	}
 };

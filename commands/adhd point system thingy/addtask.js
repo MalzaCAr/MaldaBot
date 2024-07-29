@@ -24,7 +24,7 @@ module.exports = {
     .setRequired(true))
 
 	.addStringOption(option => option.setName('repeattime') //TODO
-    .setDescription('Do you want this to repeat (WIP)')),
+    .setDescription('Do you want this task to repeat (NOT YET IMPLEMENTED)')),
 
 	async execute(interaction) {
 		let goal = interaction.options.data.find(arg => arg.name === 'goal').value,
@@ -33,11 +33,18 @@ module.exports = {
 		repeatTime = interaction.options.data.find(arg => arg.name === 'repeattime');
 		if (repeatTime != undefined) repeatTime = repeatTime.value;
 
-		let discid = interaction.member.id,
+		let discid = BigInt(interaction.member.id),
 		nickname = interaction.member.user.username,
 		channelID = interaction.channelId;
 
 		let dueTimeMS = cmdInptToMs(dueTime);
+		if (dueTimeMS <= 0) {
+			interaction.reply({content: `Idk wtf "${dueTime}" means.`});
+			return;
+		}
+		if (dueTimeMS > 31556926000) {
+			interaction.reply({content: "Sorry, the task can't be over 1 year in the future"});
+		}
 
 		let currentDate = new Date(Date.now()), 
 		dueDate = new Date(Date.now());
@@ -47,28 +54,59 @@ module.exports = {
 		db_users = database.collection("users");
 		let task_id = Number(nanoid());
 
+		if (goal.length > 256) {
+			interaction.reply({content: "Sorry, the `goal` field length must be 256 or fewer."});
+			return;
+		}
+
+		await interaction.deferReply();
+
+		let res;
 		try {
-			let res = await db_tasks.insertOne({
-				task_id: task_id, text: goal, due_date: dueDate, points: points, channel_id: channelID
+			res = await db_tasks.insertOne({
+				_id: task_id, owner_id: discid, text: goal, due_date: dueDate, points: points, channel_id: channelID
 			});
 
-			let dbuser = await db_users.find({discid: discid, });
-			dbuser = await dbuser.toArray();
+		} catch(err) {
+			//err.code 11000 means the id you're trying to insert already exists. If the stars align and you get 2 identical 8 digit numbers, try generating a new id and inserting that.
+			if (err.code == 11000) { 
+				try {
+					task_id = Number(nanoid());
+					res = await db_tasks.insertOne({
+						_id: new_taskid, owner_id: discid, text: goal, due_date: dueDate, points: points, channel_id: channelID
+					});
+				} catch (error) { //if you somehow get 3 identical 8 digit numbers then idk go buy a lottery ticket
+					interaction.editReply({content: "Something went wrong"});
+					console.log(error);
+					return;
+				}
+			}
+
+			else {
+				interaction.editReply({content: "Something went wrong"});
+				console.log(err);
+				return;
+			}
+		}
+
+		let dbuser;
+		try {
+			dbuser = await db_users.find({discid: discid, }).toArray();
 
 			if (dbuser.length === 0) {
 				await db_users.insertOne({
 					discid: discid, nickname: nickname, points: 0, tasks: []
 				});
 			}
+			await db_users.updateOne({discid}, {$push: {tasks: res.insertedId}});
 
-			await db_users.updateOne({discid}, {$push: {tasks: res.insertedId}})
-
-
-		} catch(err) {
+		} catch (error) {
+			interaction.editReply({content: "Something went wrong"});
 			console.log(err);
+			return;
 		}
-
-		interaction.reply("");
+		
+		interaction.editReply({content: `Successfully added the task`});
 
 	}
 };

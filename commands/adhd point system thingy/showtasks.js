@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, time } = require('@discordjs/builders');
-const { database, regexes } = require('../../db/index');
+const { database, msToRelTime } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,33 +7,46 @@ module.exports = {
         .setDescription(`aaaaaaaaaaaa`),
 
 	async execute(interaction) {
-        let discid = interaction.member.id;
+        let discid = BigInt(interaction.member.id);
         let users = database.collection("users");
         let tasks = database.collection("tasks");
 
-        let member = await interaction.guild.members.fetch(discid);
+        let member = await interaction.guild.members.fetch(discid.toString());
         let roleids = member._roles;
 
         let roles = roleids.map(id => interaction.guild.roles.cache.get(id)).filter(role => role);
-
 
         let roleColor = roles
             .filter(role => role.color !== 0)
             .sort((a, b) => b.position - a.position)
             .shift()
             .color;
+        
+        await interaction.deferReply();
 
-
-        let res = await users.findOne({discid: discid});
-        //console.log(res);
-        let usrTasks = await tasks.find({_id: {$in: res.tasks}}).toArray();
-        //console.log(usrTasks);
-
-        const resEmbed = {color: roleColor, title: "your tasks", fields: []}
-        for (let task of usrTasks) {
-            resEmbed.fields.push({ name: `${task.text} (${task.task_id})`, value: `**Due date: **${task.due_date.toString()} \n **Points: **${task.points}` });
+        let res;
+        try {
+            res = await users.findOne({discid: discid});
+        } catch (err) {
+            interaction.editReply({content: "Something went wrong"});
+            console.log(err);
+            return;
+        }
+        
+        let usrTasks;
+        try {
+            usrTasks = await tasks.find({_id: {$in: res.tasks}}).toArray();
+        } catch (err) {
+            interaction.editReply({content: "Something went wrong"});
+            console.log(err);
+            return;
         }
 
-        interaction.reply({embeds: [resEmbed]/*, ephemeral: true*/});
+        const resEmbed = {color: roleColor, title: "Your tasks:", fields: []}
+        for (let task of usrTasks) {
+            resEmbed.fields.push({ name: `(${task._id})\n${task.text}`, value: `**Due: **${msToRelTime(task.due_date.getTime()) } \n **Points: **${task.points}` });
+        }
+
+        interaction.editReply({embeds: [resEmbed]/*, ephemeral: true*/});
 	}
 };
