@@ -24,7 +24,7 @@ module.exports = {
     .setRequired(true))
 
 	.addStringOption(option => option.setName('name') //TODO
-    .setDescription('give your task a short name (single word) (WIP)'))
+    .setDescription('Give your task a short name (single word)'))
 
 	.addStringOption(option => option.setName('repeattime') //TODO
     .setDescription('Do you want this task to repeat (NOT YET IMPLEMENTED)')),
