@@ -42,9 +42,17 @@ module.exports = {
             return;
         }
 
-        const resEmbed = {color: roleColor, title: "Your tasks:", fields: []}
+        if (usrTasks == 0) {
+            interaction.editReply({content: "You have no set tasks."});
+            return;
+        }
+
+        const resEmbed = {color: roleColor, title: "Your tasks:", fields: []};
+        let displayTaskName;
         for (let task of usrTasks) {
-            resEmbed.fields.push({ name: `(${task._id})\n${task.text}`, value: `**Due: **${msToRelTime(task.due_date.getTime()) } \n **Points: **${task.points}` });
+            if (!task.task_name) displayTaskName = "";
+            else displayTaskName = task.task_name;
+            resEmbed.fields.push({ name: `(${task._id}) ${displayTaskName}\n${task.text}`, value: `**Due: **${msToRelTime(task.due_date.getTime()) } \n **Points: **${task.points}` });
         }
 
         interaction.editReply({embeds: [resEmbed]/*, ephemeral: true*/});

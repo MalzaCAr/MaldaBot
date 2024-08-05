@@ -23,6 +23,9 @@ module.exports = {
     .setDescription('The amount of points this task rewards')
     .setRequired(true))
 
+	.addStringOption(option => option.setName('name') //TODO
+    .setDescription('give your task a short name (single word) (WIP)'))
+
 	.addStringOption(option => option.setName('repeattime') //TODO
     .setDescription('Do you want this task to repeat (NOT YET IMPLEMENTED)')),
 
@@ -30,7 +33,8 @@ module.exports = {
 		let goal = interaction.options.data.find(arg => arg.name === 'goal').value,
 		dueTime = interaction.options.data.find(arg => arg.name === 'due_time').value,
 		points = interaction.options.data.find(arg => arg.name === 'points').value,
-		repeatTime = interaction.options.data.find(arg => arg.name === 'repeattime');
+		repeatTime = interaction.options.data.find(arg => arg.name === 'repeattime'),
+		taskName = interaction.options.data.find(arg => arg.name === 'name');
 		if (repeatTime != undefined) repeatTime = repeatTime.value;
 
 		let discid = BigInt(interaction.member.id),
@@ -44,6 +48,7 @@ module.exports = {
 		}
 		if (dueTimeMS > 31556926000) {
 			interaction.reply({content: "Sorry, the task can't be over 1 year in the future"});
+			return;
 		}
 
 		let currentDate = new Date(Date.now()), 
@@ -62,9 +67,25 @@ module.exports = {
 		await interaction.deferReply();
 
 		let res;
+		if (taskName) { //if the option isn't used, the function returns `undefined`
+			taskName = taskName.value;
+
+			res = await db_tasks.find({task_name: taskName, owner_id: discid}).toArray();
+
+			if (res.length > 0) {
+				interaction.editReply({content: `Sorry, there already exists a task with the name ${taskName}.`});
+				return;
+			}
+
+			if (taskName.search(/ /g) != -1) {
+				interaction.editReply({content: "The `name` field mustn't contain any spaces"});
+				return;
+			}
+		}
+
 		try {
 			res = await db_tasks.insertOne({
-				_id: task_id, owner_id: discid, text: goal, due_date: dueDate, points: points, channel_id: channelID
+				_id: task_id, owner_id: discid, text: goal, due_date: dueDate, points: points, channel_id: channelID, task_name: taskName
 			});
 
 		} catch(err) {
