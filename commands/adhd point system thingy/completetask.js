@@ -30,13 +30,22 @@ module.exports = {
 		else if(taskName) {
 			query = taskName.value;
 			doc.task_name = query;
+
+			try {
+					taskID = await db_tasks.findOne(doc);
+					taskID = taskID._id;
+			}catch (error) {
+					interaction.editReply({content: "Something went wrong"});
+					console.log(error);
+					return;
+			}
 		}
 		else {
 			interaction.editReply({content: "Please specify an `id` or a `name`"});
 			return;
 		}
 
-		let res, usrRes;
+		let res
 		try {
 			res = await db_tasks.findOne(doc);
 
@@ -45,14 +54,11 @@ module.exports = {
 				return;
 			}
 
-			let filter = { discid: discid },
-			updateDocument = {
-				$inc: { points: res.points }
-			};
-
-			usrRes = await db_users.updateOne(filter, updateDocument);
-
-			res = await db_tasks.deleteOne(doc);
+			await db_users.updateOne({ discid: discid }, {
+				$inc: { points: res.points },
+				$pull: { tasks: taskID}
+			});
+			await db_tasks.deleteOne(doc);
 		} catch (err) {
 			interaction.editReply({content: "Something went wrong"});
 			console.log(err);
