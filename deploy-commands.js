@@ -49,7 +49,8 @@ module.exports = {
 				{ body: commands },
 			).then(() => console.log('\ncommands good yes'));
 		} catch (error) {
-			console.error(error);
+			//console.error(error);
+			throw error;
 		}
 
 	}

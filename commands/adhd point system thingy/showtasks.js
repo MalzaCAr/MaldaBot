@@ -42,12 +42,10 @@ module.exports = {
             return;
         }
 
-        if (usrTasks == 0) {
-            interaction.editReply({content: "You have no set tasks."});
-            return;
-        }
+        const resEmbed = {color: roleColor, title: `Your points: ${res.points}\n\nYour tasks:`, fields: []};
+        
+        if (usrTasks == 0) resEmbed.fields.push({name:" ", value:"You have no set tasks"});
 
-        const resEmbed = {color: roleColor, title: "Your tasks:", fields: []};
         let displayTaskName;
         for (let task of usrTasks) {
             if (!task.task_name) displayTaskName = "";

@@ -23,7 +23,7 @@ module.exports = {
     .setDescription('The amount of points this task rewards')
     .setRequired(true))
 
-	.addStringOption(option => option.setName('name') //TODO
+	.addStringOption(option => option.setName('name') 
     .setDescription('Give your task a short name (single word)'))
 
 	.addStringOption(option => option.setName('repeattime') //TODO
@@ -70,15 +70,21 @@ module.exports = {
 		if (taskName) { //if the option isn't used, the function returns `undefined`
 			taskName = taskName.value;
 
-			res = await db_tasks.find({task_name: taskName, owner_id: discid}).toArray();
-
-			if (res.length > 0) {
-				interaction.editReply({content: `Sorry, there already exists a task with the name ${taskName}.`});
+			if (taskName.search(/ /g) != -1) {
+				interaction.editReply({content: "The `name` field mustn't contain any spaces"});
 				return;
 			}
 
-			if (taskName.search(/ /g) != -1) {
-				interaction.editReply({content: "The `name` field mustn't contain any spaces"});
+			try {
+				res = await db_tasks.find({ task_name: taskName, owner_id: discid }).toArray();
+			} catch(error) {
+				interaction.editReply({content: "Something went wrong"});
+				console.log(error);
+				return;
+			}
+
+			if (res.length > 0) {
+				interaction.editReply({content: `Sorry, there already exists a task with the name ${taskName}.`});
 				return;
 			}
 		}
@@ -119,6 +125,7 @@ module.exports = {
 					discid: discid, nickname: nickname, points: 0, tasks: []
 				});
 			}
+
 			await db_users.updateOne({discid}, {$push: {tasks: res.insertedId}});
 
 		} catch (error) {
