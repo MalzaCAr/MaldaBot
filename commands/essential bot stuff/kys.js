@@ -10,7 +10,7 @@ module.exports = {
 	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		let kysLine = [
-			"Thank you for putting me out of my misery",
+			//"Thank you for putting me out of my misery",
 			"https://tenor.com/view/goodbye-krill-world-krill-lobster-lobster-fried-krill-fried-gif-7150912747510295957",
 			"https://tenor.com/view/memes-meme-dead-death-bad-ending-gif-26049237",
 			"https://tenor.com/view/fell-gif-11242683397767497522",
@@ -19,7 +19,7 @@ module.exports = {
 			"https://tenor.com/view/hold-on-i-have-the-perfect-gif-gif-23975442",
 			"https://static.wikia.nocookie.net/1d135e42-2bc7-4167-9ea6-e8abc190fc4b/scale-to-width/755"
 		],
-		randomID = Math.floor(Math.random() * kysLine.length + 1);
+		randomID = Math.floor(Math.random() * kysLine.length);
 
 		await interaction.reply({content: kysLine[randomID]});
 		console.log(await db.killClient());
