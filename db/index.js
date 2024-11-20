@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const { customAlphabet } = require('nanoid');
 const nanoid = customAlphabet('1234567890', 8); //use arabic numbers, use 8 of them
 const dotenv = require('dotenv');
@@ -6,7 +6,17 @@ dotenv.config();
 
 //Reminder stuff
 const uri = process.env.MDBURI;
-const client = new MongoClient(uri, { connectTimeoutMS: 30000 }, { keepAlive: 1});
+const client = new MongoClient(uri, 
+    {serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true
+    }}, 
+    { connectTimeoutMS: 30000 }, 
+    { keepAlive: 1 }
+);
+
+console.log(client);
 
 const database = client.db('stupidIdiotBotDB');
 const reminders = database.collection('reminders');
