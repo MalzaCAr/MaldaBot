@@ -91,16 +91,16 @@ client.commands = new Collection();
 const commandsPath = path.join(__dirname, 'commands');
 
 const commandFolders = fs.readdirSync('./commands');
-	for (const folder of commandFolders) {
-		const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
-		for (const file of commandFiles) {
-			const command = require(`./commands/${folder}/${file}`);
-			command.category = folder;
-			if (command.data !== undefined) {
-				client.commands.set(command.data.name, command);
-			}
+for (const folder of commandFolders) {
+	const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const command = require(`./commands/${folder}/${file}`);
+		command.category = folder;
+		if (command.data !== undefined) {
+			client.commands.set(command.data.name, command);
 		}
 	}
+}
 
 // When the client is ready, run this code (only once)
 const pingList = new linkedList();
