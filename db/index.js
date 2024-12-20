@@ -7,16 +7,15 @@ dotenv.config();
 //Reminder stuff
 const uri = process.env.MDBURI;
 const client = new MongoClient(uri, 
-    {serverApi: {
+    /*{serverApi: {
         version: ServerApiVersion.v1,
         strict: true,
         deprecationErrors: true
-    }}, 
-    { connectTimeoutMS: 30000 }, 
-    { keepAlive: 1 }
+    }}, */
+    { connectTimeoutMS: 30000 },
+    //{ keepAlive: 1 },
+    { useUnifiedTopology: true, useNewUrlParser: true },
 );
-
-console.log(client);
 
 const database = client.db('stupidIdiotBotDB');
 const reminders = database.collection('reminders');
@@ -51,6 +50,17 @@ module.exports = {
     database,
     reminders,
     regexes,
+    run_db: async() => {
+        try {
+            await client.connect();
+            console.log("db connection passed, pinging:");
+            await database.command({ ping: 1 });
+            console.log("db good yes.\n");
+        } catch (error){
+            console.error(error);
+            await client.close();
+        }
+    },
     /**
      * random id generator
      * @returns {string}

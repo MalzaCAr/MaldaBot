@@ -1,15 +1,15 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
-const path = require('node:path');
+//const path = require('node:path');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const { deployCommands } = require ('./deploy-commands');
-const { isNull } = require('node:util');
+//const { isNull } = require('node:util');
 //const { EventEmitter } = require('node:stream');
 //const { syncBuiltinESMExports } = require('node:module');
+const { reminders, run_db } = require('./db/index');
 
-const { reminders } = require('./db/index');
-
+/*
 class Node {
     constructor(discID, timeStamp, next = null) {
         this.discID = discID;
@@ -72,7 +72,7 @@ class linkedList {
 
 		return pings;
     }*/
-}
+//}
 
 // Create a new client instance
 const serverIntents = new Intents();
@@ -88,7 +88,7 @@ serverIntents.add(
 const client = new Client({ intents: serverIntents });
 
 client.commands = new Collection();
-const commandsPath = path.join(__dirname, 'commands');
+//const commandsPath = path.join(__dirname, 'commands');
 
 const commandFolders = fs.readdirSync('./commands');
 for (const folder of commandFolders) {
@@ -103,10 +103,11 @@ for (const folder of commandFolders) {
 }
 
 // When the client is ready, run this code (only once)
-const pingList = new linkedList();
+//const pingList = new linkedList();
 let emojis;
 client.once('ready', async() => {
 	await deployCommands(); 
+	await run_db();
 	console.log('bot good yes'); //bot ready
 
 	emojis = (client.emojis.cache.map((e) => {  //creates a list of every emoji in the server
@@ -129,15 +130,15 @@ client.on('messageCreate', message => {
     if (message.author.bot) return false;
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
-		let randomID = Math.floor(Math.random() * emojis.length);
-		let theCulprit = message.author.id
+		//let randomID = Math.floor(Math.random() * emojis.length);
+		//let theCulprit = message.author.id
 		message.channel.send(emojis[randomID]);
-
+		/*
 		let min = 5 * 60 * 1000; //number of ms in 5 minutes
 		let max = 12 * 60 * 60 * 1000; //number of ms in 12 hours
 		let futurePingDate = new Date(Date.now()).getTime() + Math.random() * (max - min) + min;
 		
-		pingList.insertHead(theCulprit, futurePingDate);
+		pingList.insertHead(theCulprit, futurePingDate);*/
 	}
 
     if (message.mentions.has(client.user.id)) {
@@ -161,7 +162,7 @@ client.on('messageCreate', message => {
 				message.channel.send(`<a:aqua_panic0:838511611361886228>`);
 				break;
 			case "320241358440759307": //hadi
-				message.channel.send(`CLEAN YOUR FUCKING COMPUTER`);
+				message.channel.send(`Hey, how's your computer?`);
 				break;
 			case "612484496738222095": //ino
 				message.channel.send(`At your service my queen`);
@@ -186,14 +187,14 @@ client.on('interactionCreate', async interaction => {
 });
 
 //the following part handles the triggering of reminders
-let minutes = 0.1, the_interval = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
+let minutes = 0.1, duration = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
 setInterval(async function() {
 	let currentDate = new Date(Date.now());
 
 	let res;
 	try {
 		let doc = { dueDate: { $lt: currentDate,},};
-		res = await reminders.find(doc);
+		res = reminders.find(doc);
 	} catch (err) {
 		console.log (err);
 		return;
@@ -221,7 +222,7 @@ setInterval(async function() {
 		} 
 	}*/
 	
-}, the_interval);
+}, duration);
 
 // Login to Discord with your client's token
 client.login(token);
