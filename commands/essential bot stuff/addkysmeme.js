@@ -17,7 +17,7 @@ module.exports = {
 		const memes = database.collection('memes');
 
 		let meme = interaction.options.data.find(arg => arg.name === 'meme').value;	
-		
+
 		//funky way to check if the string is a valid URL
 		try {
 			new URL(meme);
@@ -25,11 +25,13 @@ module.exports = {
 			interaction.reply("Error: input is not a valid URL");
 			return;
 		}
-		
+
 		try {
 			await memes.insertOne({url: meme});
 		} catch(err) {
 			console.err(err);
 		}
+
+		interaction.reply(":thumbsup:");
 	},
 };
