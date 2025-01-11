@@ -1,12 +1,10 @@
 const { SlashCommandBuilder, time } = require('@discordjs/builders');
 const { reminders, regexes } = require('../../db/index');
 
-
-
 module.exports = {
 	data: new SlashCommandBuilder()
                 .setName(`showreminders`)
-                .setDescription(`aaaaaaaaaaaa`),
+                .setDescription(`Show all of your active reminders`),
 
 	async execute(interaction) {
                 let discID = interaction.member.id;

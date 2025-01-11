@@ -4,7 +4,7 @@ const { reminders } = require('../../db/index');
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName(`deletereminder`)
-        .setDescription(`deletes your reminder (use /showreminders to check which id corresponds to which reminder)`)
+        .setDescription(`Deletes your reminder (use /showreminders to check which id corresponds to which reminder)`)
     .addIntegerOption(option => option.setName('reminderid')
         .setDescription('the id of the reminder')
         .setRequired(true)),

@@ -6,7 +6,7 @@ const { database } = require('../../db/index');
 module.exports = {
 	data: new SlashCommandBuilder()
     .setName(`kysmeme`)
-    .setDescription(`add a funny meme to the bot's vast meme collection`),
+    .setDescription(`aObtain a random meme from the bot's vast meme collection`),
 	
 	async execute(interaction) {
 		const memes = database.collection('memes');
