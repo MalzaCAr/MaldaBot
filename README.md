@@ -1,6 +1,6 @@
 # MaldaBot
 
-Hi, this is my personal bot that's (at least so far) for personal use.
+Hi, this is my bot that's (at least so far) for personal use.
 I mainly use it to learn new stuff. So far, the most impressive thing this bot can do is reminders. You give it a time in the future, and when it arrives, it pings you with a custom message.
 
 #### This bot uses MongoDB for its database.
