@@ -7,7 +7,7 @@ I mainly use it to learn new stuff. So far, the most impressive thing this bot c
 
 # Installation
 
-- If you, for some reason, wanna give the bot a shot, it's about as difficult as setting up any discord bot.
+If you, for some reason, wanna give the bot a shot, it's about as difficult as setting up any discord bot.
 It'll be kindof manual for now. I might make a script for it later, sounds like fun.
 
 ### 1. Make your own bot and install node.js
