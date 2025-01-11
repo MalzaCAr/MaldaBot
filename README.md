@@ -27,7 +27,7 @@ For more details, head [here](https://www.mongodb.com/docs/atlas/getting-started
 ### 3. Make config.json and .env
 
 - Once you have your bot token and connection string, you'll have to make 2 more files where you'll store all the information the bot needs.
-The files looks like this:
+The files look like this:
 
 #### Config.json
 ```
