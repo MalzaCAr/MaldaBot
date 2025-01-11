@@ -8,7 +8,7 @@ module.exports = {
     .setName(`addkysmeme`)
     .setDescription(`add a funny meme to the bot's vast meme collection`)
 
-	.addStringOption(option => option.setName('meme')
+	.addStringOption(option => option.setName('memeurl')
 		.setDescription('pls give url to the image')
 		.setRequired(true))
 
@@ -16,18 +16,18 @@ module.exports = {
 	async execute(interaction) {
 		const memes = database.collection('memes');
 
-		let meme = interaction.options.data.find(arg => arg.name === 'meme').value;	
+		let memeurl = interaction.options.data.find(arg => arg.name === 'memeurl').value;	
 
 		//funky way to check if the string is a valid URL
 		try {
-			new URL(meme);
+			new URL(memeurl);
 		}catch(err) {
 			interaction.reply("Error: input is not a valid URL");
 			return;
 		}
 
 		try {
-			await memes.insertOne({url: meme});
+			await memes.insertOne({url: memeurl});
 		} catch(err) {
 			console.err(err);
 		}

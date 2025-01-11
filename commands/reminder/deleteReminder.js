@@ -5,12 +5,12 @@ module.exports = {
 	data: new SlashCommandBuilder()
         .setName(`deletereminder`)
         .setDescription(`deletes your reminder (use /showreminders to check which id corresponds to which reminder)`)
-    .addIntegerOption(option => option.setName('remid')
+    .addIntegerOption(option => option.setName('reminderid')
         .setDescription('the id of the reminder')
         .setRequired(true)),
 
 	async execute(interaction) {
-        let reqID = interaction.options.data.find(arg => arg.name === "remid").value; //requested id
+        let reqID = interaction.options.data.find(arg => arg.name === "reminderid").value; //requested id
         let discID = interaction.member.id;
         reqID = Number(reqID);
         //returns a reminder that belongs to the user
