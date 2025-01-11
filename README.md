@@ -14,14 +14,14 @@ It'll be kindof manual for now. I might make a script for it later, sounds like 
 
 - First things first, make your copy of a bot.
 Install node.js and discord.js, then go to the discord dev portal and make a bot. Make sure to copy the token somewhere.
-For more details, head to https://discordjs.guide/preparations/
+For more details, head [here](https://discordjs.guide/preparations/)
 
 
 ### 2. Make a MongoDB Cluster
 
 - If you've never used MongoDB, make a Mongo Atlas account. Otherwise just head to Atlas.
 Then make a cluster, no extra settings needed. Copy the connection string somewhere.
-For more details, head to https://www.mongodb.com/docs/atlas/getting-started/
+For more details, head [here](https://www.mongodb.com/docs/atlas/getting-started/)
 
 
 ### 3. Make config.json and .env
@@ -50,3 +50,52 @@ Where `<your_connection_string>` is your cluster's connection string.
 ### 4. ~Suffer~ Enjoy the bot
 
 - After all that, that's it really. The bot is simple enough so there're not many hoops you have to go through.
+
+
+# Commands
+
+This section will give a brief description on what each command does.
+
+## Reminder commands:
+
+#### addReminder (time: String, memo: String)
+
+- make a new reminder.
+- `time`: The time when the reminder is supposed to trigger. Time is relative to when the command is called (so, in X hours).
+- `memo`: The text displayed when the reminder triggers.
+
+#### showReminders
+
+- Shows all of users ongoing reminders.
+
+#### deleteRemidner (reminderid: Int)
+
+- Deletes a user's reminder.
+- `reminderid`: see a reminder's id with `showReminders` and use it to delete it.
+
+## Misc. stuff:
+
+#### kys
+
+- Kills the bot. The bot also sends a random meme percieving it's horrible demise.
+
+#### kysMeme
+
+- The bot sends a random meme from it's vast meme library.
+
+#### addKysMeme (memeurl: String)
+
+- Adds a meme to the bot's vast meme library.
+- `memeurl`: the url to the image/gif.
+
+#### reload (command: String)
+
+- Reloads a command, updating any changes you made while the bot is online.
+- `command`: The name of the command.
+
+#### ping
+
+- A simple ping command.
+
+
+
