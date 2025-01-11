@@ -1,13 +1,13 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const db = require('../../db/index');
+const URL = require('url').URL;
 const { database } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-    .setName(`kys`)
-    .setDescription(`fucking kills the bot lol`)
-	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setName(`kysmeme`)
+    .setDescription(`add a funny meme to the bot's vast meme collection`),
+	
 	async execute(interaction) {
 		const memes = database.collection('memes');
 
@@ -21,10 +21,5 @@ module.exports = {
 		}
 
 		await interaction.reply(meme[0].url);
-
-		console.log(await db.killClient());
-		interaction.client.destroy();
-		console.log("bot fucking killed itself :(");
-		process.exit();
 	},
 };
