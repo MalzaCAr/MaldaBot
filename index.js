@@ -1,78 +1,9 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
-//const path = require('node:path');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { token } = require('./config.json');
 const { deployCommands } = require ('./deploy-commands');
-//const { isNull } = require('node:util');
-//const { EventEmitter } = require('node:stream');
-//const { syncBuiltinESMExports } = require('node:module');
 const { reminders, run_db } = require('./db/index');
-
-/*
-class Node {
-    constructor(discID, timeStamp, next = null) {
-        this.discID = discID;
-        this.timeStamp = timeStamp;
-        this.next = next;
-    }
-}
-
-class linkedList {
-    constructor() {
-        this.head = null;
-        this.size = 0;
-    }
-
-    insertHead(discID, timeStamp) {
-        this.head = new Node(discID, timeStamp, this.head);
-        this.size++
-    }
-	/*
-    pingshit(currentDate) {
-		let pings = []; //ping array to return
-        let current = this.head; 
-		if (current == null) return pings; //if the list is empty, get the fuck out
-
-		let previous = null;
-
-		do {
-			if (current.timeStamp < currentDate) {
-				pings.push(current.discID);
-				this.size--;
-				
-			}
-		} while (current.next != null);
-		/*while (current.timeStamp < currentDate) { //linked lists give me a headache
-			pings.push(current.discID);
-			this.size--;
-			this.head = current.next;
-			current = current.next;
-
-			if (current == null) return pings; //if the next node is empty, aka the current one now, gtfo
-		};
-		//this executes if the head isn't due yet
-		previous = current; 
-		current = current.next;
-		if (current == null) return pings; //same as above
-
-		//otherwise, check nodes after the head
-		do {
-			if (current.timeStamp < currentDate) { 
-				pings.push(current.discID);
-				this.size--;
-				previous.next = current.next; //we "delete" a node by making the previous node point to the next node instead of this current node
-			}
-			else {
-				previous = current; //move the previous to the current one, then move the current to the next one
-			}
-			current = current.next;
-
-		} while (current.next != null); //repeat until you reach the end
-
-		return pings;
-    }*/
-//}
 
 // Create a new client instance
 const serverIntents = new Intents();
@@ -88,7 +19,6 @@ serverIntents.add(
 const client = new Client({ intents: serverIntents });
 
 client.commands = new Collection();
-//const commandsPath = path.join(__dirname, 'commands');
 
 const commandFolders = fs.readdirSync('./commands');
 for (const folder of commandFolders) {
@@ -103,7 +33,6 @@ for (const folder of commandFolders) {
 }
 
 // When the client is ready, run this code (only once)
-//const pingList = new linkedList();
 let emojis;
 client.once('ready', async() => {
 	await deployCommands(); 
@@ -130,15 +59,7 @@ client.on('messageCreate', message => {
     if (message.author.bot) return false;
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
-		//let randomID = Math.floor(Math.random() * emojis.length);
-		//let theCulprit = message.author.id
 		message.channel.send(emojis[randomID]);
-		/*
-		let min = 5 * 60 * 1000; //number of ms in 5 minutes
-		let max = 12 * 60 * 60 * 1000; //number of ms in 12 hours
-		let futurePingDate = new Date(Date.now()).getTime() + Math.random() * (max - min) + min;
-		
-		pingList.insertHead(theCulprit, futurePingDate);*/
 	}
 
     if (message.mentions.has(client.user.id)) {
@@ -211,17 +132,6 @@ setInterval(async function() {
 			console.log(err);
 		}
 	}
-
-	/*const channel = client.channels.cache.get('815546700072615968');
-	console.log(pingList);
-	pings = pingList.pingshit(currentDate.getTime());
-
-	if (pings.length != 0) {
-		for (ping of pings) {
-			channel.send(`<@${ping}>`);
-		} 
-	}*/
-	
 }, duration);
 
 // Login to Discord with your client's token
