@@ -1,9 +1,12 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
 const { Client, Intents, Message, Collection } = require('discord.js');
-const { token } = require('./config.json');
 const { deployCommands } = require ('./deploy-commands');
 const { reminders, run_db } = require('./db/index');
+const dotenv = require('dotenv');
+
+dotenv.config();
+const token = process.env.DISCORD_TOKEN;
 
 // Create a new client instance
 const serverIntents = new Intents();

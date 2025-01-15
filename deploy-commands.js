@@ -2,7 +2,11 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, guildId, token } = require('./config.json');
+const { clientId, guildId } = require('./config.json');
+const dotenv = require('dotenv');
+
+dotenv.config();
+const token = process.env.DISCORD_TOKEN;
 
 module.exports = {
 	deployCommands: async() => {
