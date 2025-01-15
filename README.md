@@ -52,11 +52,9 @@ Where `<your_connection_string>` is your cluster's connection string.
 
 - After all that, that's it really. The bot is simple enough so there're not many hoops you have to go through.
 
-## Commands
-
-This section will give a brief description on what each command does.
-
 ## Reminder commands
+
+- This section will list all the bot's commands and what they do:
 
 ### addReminder (time: String, memo: String)
 
