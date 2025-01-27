@@ -1,12 +1,11 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const URL = require('url').URL;
 const { database } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
     .setName(`kysmeme`)
-    .setDescription(`aObtain a random meme from the bot's vast meme collection`),
+    .setDescription(`Obtain a random meme from the bot's vast meme collection`),
 	
 	async execute(interaction) {
 		const memes = database.collection('memes');

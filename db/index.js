@@ -48,8 +48,6 @@ const regexes = [
 
 module.exports = {
     database,
-    reminders,
-    regexes,
     run_db: async() => {
         try {
             await client.connect();
@@ -61,6 +59,7 @@ module.exports = {
             await client.close();
         }
     },
+
     /**
      * random id generator
      * @returns {string}

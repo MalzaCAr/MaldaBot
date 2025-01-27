@@ -1,6 +1,6 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const { reminders, cmdInptToMs, regexes, nanoid } = require('../../db/index');
+const { database, cmdInptToMs, nanoid, msToRelTime } = require('../../db/index');
 
 const tableName = "reminders";
 module.exports = {
@@ -22,6 +22,7 @@ module.exports = {
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
         let channelID = interaction.channelId;
+        let reminders = database.collection("reminders");
 
         const nonoterms = [/@everyone/i, /@here/i, /<@&\d+>/g]; //no funny @everyone @here, or role pings
         for (let nonoterm of nonoterms) {
@@ -48,7 +49,7 @@ module.exports = {
         let futureDateInMillis = cmdInptToMs(timeString);
 
         if (futureDateInMillis <= 0) { //some idiot proofing :P
-            await interaction.editReply({content: "Error: Wrong syntax  in `time` field"});
+            await interaction.editReply({content: "Wrong syntax in `time` field"});
             return;
         }
         if (futureDateInMillis > 31556926000) {
@@ -72,8 +73,8 @@ module.exports = {
 
         let currentDate = new Date(Date.now())
         let dueDate = new Date(Date.now())
-
         dueDate.setTime(currentDate.getTime() + futureDateInMillis);
+        
         try {
             let remid = Number(nanoid());
             res = await reminders.insertOne({
@@ -85,32 +86,6 @@ module.exports = {
             return;
         } 
 
-        let replyArray = []; //used for displaying the due time
-
-        //divide the total amount of ms by chunks of amount of ms in weeks, days, hours and minutes
-        //then convert to amount of weeks, days, hours and minutes
-        for (let i = regexes.length - 1; i >= 0; i--) {
-            if (futureDateInMillis / regexes[i].amountOfMs < 1) continue;
-            
-            let result = parseInt(futureDateInMillis / regexes[i].amountOfMs);
-            futureDateInMillis -= result * regexes[i].amountOfMs;
-    
-            //the display names for the regexes are in plural ("minutes, hours and such")
-            //which doesn't work if there's only 1 minute or 1 hour or such
-            //so if it's not plural, cut off the last "s" on the words
-            if (result == 1) {
-                replyArray.push(`1 ${regexes[i].name.slice(0, regexes[i].name.length - 1)}`);
-            }
-            else {
-                replyArray.push(`${result} ${regexes[i].name}`);
-            }
-            
-        }
-
-        const discTimestamp = Math.floor(dueDate.getTime()/1000); //discord timestamp to show date in the user's timezone
-        const replyString = new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)
-
-        //node magic format methods
-        interaction.editReply({content: `Reminder set to go off in ${replyString}, at <t:${discTimestamp}:f>`});
+        interaction.editReply({content: `Reminder set to go off in ${msToRelTime(dueDate)}`});
 	}
 };
