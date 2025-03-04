@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { deployCommands } = require ('./deploy-commands');
-const { reminders, run_db } = require('./db/index');
+const { database, run_db } = require('./db/index');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -114,6 +114,7 @@ client.on('interactionCreate', async interaction => {
 let minutes = 0.1, duration = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
 setInterval(async function() {
 	let currentDate = new Date(Date.now());
+	let reminders = database.collection("reminders");
 
 	let res;
 	try {
