@@ -2,7 +2,7 @@
 
 Hi, this is my bot that's (at least so far) for personal use.
 I mainly use it to learn new stuff. So far, the most impressive thing this bot can do is reminders. You give it a time in the future, and when it arrives, it pings you with a custom message.
-**This bot uses MongoDB for its database.**
+**This bot uses Postgres for its database.**
 
 ## Installation
 
@@ -15,11 +15,34 @@ First things first, make your copy of a bot.
 Install node.js and discord.js, then go to the discord dev portal and make a bot. Make sure to copy the token somewhere.
 For more details about making a discord bot, head [here](https://discordjs.guide/preparations/)
 
-### 2. Make a MongoDB Cluster
+### 2. Make a Postgres database
 
-If you've never used MongoDB, make a Mongo Atlas account. Otherwise just head to Atlas.
-Then make a cluster, no extra settings needed. Copy the connection string somewhere.
-For more details about MongoDB, head [here](https://www.mongodb.com/docs/atlas/getting-started/)
+If you've never used postgres, I used [this guide](https://node-postgres.com/) for setting up my database. The details for connecting your cluster are located in `/db/index.js`.
+
+As for the DB's schema, it looks something like this:
+
+```SQL
+CREATE TABLE IF NOT EXISTS servers (
+    guild_id BIGINT PRIMARY KEY,
+    guild_name varchar(32)
+);
+
+CREATE TABLE IF NOT EXISTS users (
+    disc_id BIGINT PRIMARY KEY,
+    nickname VARCHAR(32),
+    server_id BIGINT,
+    FOREIGN KEY (server_id) REFERENCES servers(guild_id)
+);
+
+CREATE TABLE IF NOT EXISTS reminders (
+    rem_id BIGINT PRIMARY KEY,
+    memo VARCHAR(255),
+    due_date TIMESTAMP,
+    channel_id BIGINT,
+    owner_id BIGINT,
+    FOREIGN KEY (owner_id) REFERENCES users(disc_id)
+);
+```
 
 ### 3. Make config.json and .env
 
@@ -30,7 +53,6 @@ The files look like this:
 
 ```json
 {
-    "guildId": "<your_server_id>",
     "clientId": "<your_bot's_id>"
 }
 ```

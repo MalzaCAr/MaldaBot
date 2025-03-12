@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { database } = require('../../db/index');
+const { query } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -12,22 +12,29 @@ module.exports = {
 	async execute(interaction) {
         let reqID = Number(interaction.options.data.find(arg => arg.name === "reminderid").value); //requested id
         let discID = interaction.member.id;
-        let reminders = database.collection("reminders");
 
-        //returns a reminder that belongs to the user
-        let res = await reminders.find({ discID: discID, remid: reqID, }).toArray();
+        let res;
+        try {
+            res = await query("DELETE FROM reminders WHERE owner_id = $1 AND rem_id = $2", [discID, reqID]);
+        } catch(err) {
+            console.error(err);
+            interaction.reply({content: `Something went wrong with the deletion of the reminder`});
+            return;
+        }
 
-        if (res[0] === undefined) {
+        if (res.rowCount === 0) {
             interaction.reply({content: `The id "${reqID}" doesn't match any of your reminder ids`});
             return;
         }
 
         try {
-            await reminders.deleteOne({remid: reqID, });
-            interaction.reply({content: `Successfully deleted the reminder with the id: ${'`' + reqID + '`'}.`/*ephemeral: true*/})
-        }catch (err) {
-            console.log(err);
+            res = await query("DELETE FROM users WHERE NOT EXISTS (SELECT * FROM reminders WHERE owner_id = $1)", [discID]);
+        } catch (err) {
+            console.error(err);
             interaction.reply({content: `Something went wrong with the deletion of the reminder`});
+            return;
         }
+    
+        interaction.reply({content: `Successfully deleted the reminder with the id: ${'`' + reqID + '`'}.`/*ephemeral: true*/})
 	}
 };

@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const { Client, Intents, Message, Collection } = require('discord.js');
 const { deployCommands } = require ('./deploy-commands');
-const { database, run_db } = require('./db/index');
+const { query, run_db } = require('./db/index');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -20,25 +20,14 @@ serverIntents.add(
 );
 
 const client = new Client({ intents: serverIntents });
-
 client.commands = new Collection();
-
-const commandFolders = fs.readdirSync('./commands');
-for (const folder of commandFolders) {
-	const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
-	for (const file of commandFiles) {
-		const command = require(`./commands/${folder}/${file}`);
-		command.category = folder;
-		if (command.data !== undefined) {
-			client.commands.set(command.data.name, command);
-		}
-	}
-}
 
 // When the client is ready, run this code (only once)
 let emojis;
 client.once('ready', async() => {
-	await deployCommands(); 
+	client.guilds.cache.forEach(async guild => {
+		await deployCommands(guild.id, guild.name, client.commands);
+	});
 	await run_db();
 	console.log('bot good yes'); //bot ready
 
@@ -51,11 +40,11 @@ client.once('ready', async() => {
 		"Oh god not this shit again", 
 		"End my fucking misery",
 		"Make it stop"
-	]
+	];
 
 	const channel = client.channels.cache.get('815546700072615968');
 	let randomNum = Math.floor(Math.random() * funnyOneLiners.length);
-	channel.send (funnyOneLiners[randomNum]);
+	//channel.send (funnyOneLiners[randomNum]);
 });
 
 client.on('messageCreate', message => {
@@ -114,24 +103,37 @@ client.on('interactionCreate', async interaction => {
 let minutes = 0.1, duration = minutes * 60 * 1000; //this sets at what interval are the reminder due times getting checked
 setInterval(async function() {
 	let currentDate = new Date(Date.now());
-	let reminders = database.collection("reminders");
 
 	let res;
 	try {
-		let doc = { dueDate: { $lt: currentDate,},};
-		res = reminders.find(doc);
+		res = await query({
+			text: "SELECT (memo, channel_id, owner_id, rem_id) FROM reminders WHERE due_date <= $1", 
+			values: [currentDate],
+			rowMode: "array",
+		});
 	} catch (err) {
 		console.log (err);
 		return;
 	};
+	for await (row of res.rows) {
+		//remove parenthesis from beginning and end, make into array
+		row = row[0].slice(1,-1).split(',');
 
-	for await (const resDoc of res) {
-		const channel = client.channels.cache.get(resDoc.channelID);
-		channel.send(`<@${resDoc.discID}>: ${resDoc.reminderMemo}`);
+		const channel = client.channels.cache.get(row[1]);
+		channel.send(`<@${row[2]}>: ${row[0]}`);
 
 		try {
-			let resDel = await reminders.deleteOne({ _id: resDoc._id });
-			//console.log(resDel);
+			//delete the reminder after you're done with it
+			await query({
+				text: "DELETE FROM reminders WHERE rem_id = $1",
+				values: [row[3]],
+			});
+
+			//if a user no longer has any reminders, yeet them
+			await query({
+				text: "DELETE FROM users WHERE NOT EXISTS (SELECT * FROM reminders WHERE owner_id = $1)",
+				values: [row[2]],
+			});
 		} catch(err) {
 			console.log(err);
 		}

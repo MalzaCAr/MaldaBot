@@ -2,14 +2,14 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, guildId } = require('./config.json');
+const { clientId } = require('./config.json');
 const dotenv = require('dotenv');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
 module.exports = {
-	deployCommands: async() => {
+	deployCommands: async(guildId, guildName, clientCommands) => {
 		// const commands = [];
 
 		// const commandsPath = path.join(__dirname, 'commands');
@@ -40,6 +40,7 @@ module.exports = {
 				const command = require(`./commands/${folder}/${file}`);
 				command.category = folder;
 				if (command.data !== undefined) {
+					clientCommands.set(command.data.name, command);
 					commands.push(command.data.toJSON());
 				}
 			}
@@ -51,7 +52,7 @@ module.exports = {
 			await rest.put(
 				Routes.applicationGuildCommands(clientId, guildId),
 				{ body: commands },
-			).then(() => console.log('\ncommands good yes'));
+			).then(() => console.log(`\ncommands deployed for "${guildName}" (${guildId})`));
 		} catch (error) {
 			//console.error(error);
 			throw error;
