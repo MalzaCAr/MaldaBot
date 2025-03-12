@@ -24,7 +24,7 @@ As for the DB's schema, it looks something like this:
 ```SQL
 CREATE TABLE IF NOT EXISTS servers (
     guild_id BIGINT PRIMARY KEY,
-    guild_name varchar(32)
+    guild_name VARCHAR(32)
 );
 
 CREATE TABLE IF NOT EXISTS users (
