@@ -9,6 +9,7 @@
     "mongoose": "^8.5.1",
     "mongosh": "^2.2.15",
     "nanoid": "^3.3.4",
+    "pg": "^8.13.3",
     "uwuifier": "^4.0.5"
   },
   "name": "maldabot",

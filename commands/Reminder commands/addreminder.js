@@ -1,6 +1,6 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const { database, cmdInptToMs, nanoid, msToRelTime } = require('../../db/index');
+const { query, cmdInptToMs, nanoid, msToRelTime } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,9 +21,10 @@ module.exports = {
         let discID = interaction.member.id;
         let nickname = interaction.member.user.username;
         let channelID = interaction.channelId;
-        let reminders = database.collection("reminders");
+        let guildID = interaction.guild.id, guildName = interaction.guild.name;
 
-        const nonoterms = [/@everyone/i, /@here/i, /<@&\d+>/g]; //no funny @everyone @here, or role pings
+        //no funny @everyone @here, or role pings
+        const nonoterms = [/@everyone/i, /@here/i, /<@&\d+>/g]; 
         for (let nonoterm of nonoterms) {
             if (reminderMemo.search(nonoterm) != -1) {
                 interaction.reply({content: `no, fuck off <@${discID}>`});
@@ -31,8 +32,9 @@ module.exports = {
             }
         }
 
+        //replaces any ping in the reminder with a ping of the command user, we do a little bit of trolling
         const mentionRegex = /<@\d+>/g;
-        reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); //replaces any ping in the reminder with a ping of the command user, we do a little bit of trolling
+        reminderMemo = reminderMemo.replace(mentionRegex, `<@${discID}>`); 
 
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
 
@@ -47,7 +49,8 @@ module.exports = {
 
         let futureDateInMillis = cmdInptToMs(timeString);
 
-        if (futureDateInMillis <= 0) { //some idiot proofing :P
+        //some idiot proofing :P
+        if (futureDateInMillis <= 0) { 
             await interaction.editReply({content: "Wrong syntax in `time` field"});
             return;
         }
@@ -56,29 +59,40 @@ module.exports = {
             return;
         }
 
-        let res, reminderCap = 10; //the amount of reminders one can have at a time
+        //DATABASE STUFF
+        let res;
         try {
-            res = await reminders.find({discID: discID}).toArray();
+            res = await query("INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;", [guildID, guildName]);
+            res = await query("INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", [discID, nickname, guildID]);
+        } catch(err) {
+            console.log(err);
+            await interaction.editReply("Something went wrong with setting the reply :(");
+            return;
+        }
+
+        let reminderCap = 10; //the amount of reminders one can have at a time
+        try {
+            res = await query("SELECT COUNT(*) FROM reminders WHERE owner_id = $1", [discID]);
         } catch (err) {
             console.log(err);
             await interaction.editReply("Something went wrong with setting the reply :(");
             return;
         };
-        
-        if (res.length > reminderCap) {
+
+        if (res.rows[0].count >= reminderCap) {
             await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
             return;
         }
 
         let currentDate = new Date(Date.now())
         let dueDate = new Date(Date.now())
-        dueDate.setTime(currentDate.getTime() + futureDateInMillis);
-        
+        dueDate.setTime(currentDate.getTime() + futureDateInMillis + 1000);
+
         try {
             let remid = Number(nanoid());
-            res = await reminders.insertOne({
-                remid, discID, nickname, reminderMemo, dueDate, channelID
-            });
+            res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5)", 
+                [remid, reminderMemo, dueDate, channelID, discID]
+            );
         } catch (err) {
             console.log(err);
             await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { database, msToRelTime } = require('../../db/index');
+const { query, msToRelTime } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -8,23 +8,26 @@ module.exports = {
 
 	async execute(interaction) {
         let discID = interaction.member.id;
-        let reminders = database.collection("reminders");
 
-        let res = await reminders.find({ discID: discID, }).toArray();
+        let res = await query({
+            text: "SELECT rem_id, memo, due_date FROM reminders WHERE owner_id = $1", 
+            values: [discID],
+            rowMode: 'array',
+        });
 
-        if (res.length == 0) {
+        if (res.rowCount == 0) {
             interaction.reply({content: "You have no reminders set"});
             return;
         }
 
         let output = `Your reminders are: \n\n`;
 
-        for (let row of res) {
+        for (let row of res.rows) {
             output += 
-                `**${row.remid}**: ${row.reminderMemo}\n` + 
-                `**Due**: ${msToRelTime(row.dueDate)}\n\n`;
+                `**${row[0]}**: ${row[1]}\n` + 
+                `**Due**: ${msToRelTime(row[2])}\n\n`;
         }   
 
         interaction.reply({content: output/*, ephemeral: true*/});
-	}
+        }
 };

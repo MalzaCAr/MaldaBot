@@ -1,24 +1,19 @@
-const { MongoClient, ServerApiVersion } = require("mongodb");
+//const { MongoClient, ServerApiVersion } = require("mongodb");
+const { Pool } = require ('pg');
 const { customAlphabet } = require('nanoid');
 const nanoid = customAlphabet('1234567890', 8); //use arabic numbers, use 8 of them
 const dotenv = require('dotenv');
 dotenv.config();
 
 //Reminder stuff
-const uri = process.env.MDBURI;
-const client = new MongoClient(uri, 
-    /*{serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true
-    }}, */
-    { connectTimeoutMS: 30000 },
-    //{ keepAlive: 1 },
-    { useUnifiedTopology: true, useNewUrlParser: true },
-);
-
-const database = client.db('stupidIdiotBotDB');
-const reminders = database.collection('reminders');
+const pool = new Pool({
+    host: 'localhost',
+    port: 5432,
+    user: 'postgres',
+    database: 'maldadb',
+    max: 20,
+    connectionTimeoutMillis: 20000
+});
 
 class keywordRegex {
     constructor(inputArr, amount, name) {
@@ -40,23 +35,22 @@ const dayRegex = [/days/i, /day/i, /d/i];
 const weekRegex = [/weeks/i, /week/i, /w/i];
 
 const regexes = [
-    new keywordRegex(minRegex, 60000, "minutes"), //minutes
-    new keywordRegex(hourRegex, 3600000, "hours"), //hours
+    new keywordRegex(weekRegex, 604800000, "weeks"), //weeks
     new keywordRegex(dayRegex, 86400000, "days"), //days
-    new keywordRegex(weekRegex, 604800000, "weeks") //weeks
+    new keywordRegex(hourRegex, 3600000, "hours"), //hours
+    new keywordRegex(minRegex, 60000, "minutes") //minutes
 ];
 
 module.exports = {
-    database,
+    query: async(text, params, callback) => {
+        return pool.query(text, params, callback);
+    },
     run_db: async() => {
         try {
-            await client.connect();
-            console.log("db connection passed, pinging:");
-            await database.command({ ping: 1 });
-            console.log("db good yes.\n");
+            const client = await pool.connect();
+            return client;
         } catch (error){
             console.error(error);
-            await client.close();
         }
     },
 
@@ -73,8 +67,7 @@ module.exports = {
      */
     killClient: async() => {
         try {
-            await client.close();
-            return "MongoDB Client closed";
+            await pool.end();
         } catch(err) {
             return err;
         }
@@ -123,7 +116,7 @@ module.exports = {
         let replyArray = [];
 
         //the array is reversed so the loop divides by bigger time values first
-        for (let i of regexes.reverse()) {
+        for (let i of regexes) {
             if (timeDiff / i.amountOfMs < 1) continue;
 
             let amount = parseInt(timeDiff / i.amountOfMs);
