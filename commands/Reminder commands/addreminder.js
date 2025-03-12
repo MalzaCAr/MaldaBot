@@ -88,16 +88,27 @@ module.exports = {
         let dueDate = new Date(Date.now())
         dueDate.setTime(currentDate.getTime() + futureDateInMillis + 1000);
 
-        try {
-            let remid = Number(nanoid());
-            res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5)", 
-                [remid, reminderMemo, dueDate, channelID, discID]
-            );
-        } catch (err) {
-            console.log(err);
-            await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});
-            return;
-        } 
+        //since my way of doing ids *can* result in conflicts, this will try 10 times to insert
+        for (let i = 0; true; i++) {
+            try {
+                let remid = Number(nanoid());
+                res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5)", 
+                    [remid, reminderMemo, dueDate, channelID, discID]
+                );
+                break;
+            } catch (err) {
+                //code 2305 is "key already exists" error
+                if (err.code == '23505' && i <= 10) {
+                    console.error("Primary key conflict");
+                    continue;
+                }
+
+                console.log(err);
+                await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});
+                return;
+            }
+        }
+         
 
         interaction.editReply({content: `Reminder set to go off in ${msToRelTime(dueDate)}`});
 	}
