@@ -28,7 +28,7 @@ class keywordRegex {
 
 //List of regexes for the keywords for time input
 //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
-//Also make sure to go from smallest unit of time to biggest, otherwise rip code
+//Also make sure to go from biggest unit of time to smallest, otherwise rip code
 const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
 const hourRegex = [/hours/i, /hour/i, /h/i];
 const dayRegex = [/days/i, /day/i, /d/i];
@@ -111,11 +111,8 @@ module.exports = {
     msToRelTime: function(dueDateMs) {
         let timeDiff = new Date(dueDateMs).getTime() - new Date(Date.now()).getTime();
 
-        //this feels like such a stupid way to do this but im also stupid so it is what it is
-        //handles the output message containing in how many weeks/days/hours/minutes is the reminder due
         let replyArray = [];
 
-        //the array is reversed so the loop divides by bigger time values first
         for (let i of regexes) {
             if (timeDiff / i.amountOfMs < 1) continue;
 

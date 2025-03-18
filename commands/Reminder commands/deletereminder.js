@@ -26,14 +26,6 @@ module.exports = {
             interaction.reply({content: `The id "${reqID}" doesn't match any of your reminder ids`});
             return;
         }
-
-        try {
-            res = await query("DELETE FROM users WHERE NOT EXISTS (SELECT * FROM reminders WHERE owner_id = $1)", [discID]);
-        } catch (err) {
-            console.error(err);
-            interaction.reply({content: `Something went wrong with the deletion of the reminder`});
-            return;
-        }
     
         interaction.reply({content: `Successfully deleted the reminder with the id: ${'`' + reqID + '`'}.`/*ephemeral: true*/})
 	}

@@ -4,6 +4,7 @@ const { Client, Intents, Message, Collection } = require('discord.js');
 const { deployCommands } = require ('./deploy-commands');
 const { query, run_db } = require('./db/index');
 const dotenv = require('dotenv');
+const { reg } = require('./pee_vee_pee');
 
 dotenv.config();
 const token = process.env.DISCORD_TOKEN;
@@ -24,6 +25,7 @@ client.commands = new Collection();
 
 // When the client is ready, run this code (only once)
 let emojis;
+let reg_queue = [];
 client.once('ready', async() => {
 	client.guilds.cache.forEach(async guild => {
 		await deployCommands(guild.id, guild.name, client.commands);
@@ -49,8 +51,14 @@ client.once('ready', async() => {
 
 client.on('messageCreate', message => {
     if (message.author.bot) return false;
+	
+	let reg_chnl_id = 815546700072615968;
+	if (message.channelId == reg_chnl_id) {
+		reg(message, client);
+	}
 
 	if (message.mentions.has("274853598280810496")) { //malzers' id
+		let randomID = Math.floor(Math.random() * emojis.length);
 		message.channel.send(emojis[randomID]);
 	}
 
@@ -97,6 +105,30 @@ client.on('interactionCreate', async interaction => {
 	} catch (error) {
 		console.error(error);
 	}
+
+	commandTime = new Date(Date.now());
+	try {
+		let discID = interaction.member.id;
+		let nickname = interaction.member.user.username;
+		let guildID = interaction.guild.id, guildName = interaction.guild.name;
+
+		await query({
+			text: "INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;",
+			values:[guildID, guildName]
+		});
+    
+		await query({
+			text:"INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", 
+			values: [discID, nickname, guildID]
+		});
+
+		await query({
+			text: "INSERT INTO command_log VALUES ($1, $2, $3, $4, $5, $6)",
+			values: [interaction.id, interaction.guildId, interaction.channelId, interaction.user.id, interaction.commandName, commandTime]
+		});
+	} catch(err) {
+		console.error(err);
+	}
 });
 
 //the following part handles the triggering of reminders
@@ -112,9 +144,10 @@ setInterval(async function() {
 			rowMode: "array",
 		});
 	} catch (err) {
-		console.log (err);
+		console.error(err);
 		return;
 	};
+
 	for await (row of res.rows) {
 		//remove parenthesis from beginning and end, make into array
 		row = row[0].slice(1,-1).split(',');
@@ -128,14 +161,8 @@ setInterval(async function() {
 				text: "DELETE FROM reminders WHERE rem_id = $1",
 				values: [row[3]],
 			});
-
-			//if a user no longer has any reminders, yeet them
-			await query({
-				text: "DELETE FROM users WHERE NOT EXISTS (SELECT * FROM reminders WHERE owner_id = $1)",
-				values: [row[2]],
-			});
 		} catch(err) {
-			console.log(err);
+			console.error(err);
 		}
 	}
 }, duration);

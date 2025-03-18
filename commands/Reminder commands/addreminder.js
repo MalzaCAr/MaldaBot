@@ -65,7 +65,7 @@ module.exports = {
             res = await query("INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;", [guildID, guildName]);
             res = await query("INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", [discID, nickname, guildID]);
         } catch(err) {
-            console.log(err);
+            console.error(err);
             await interaction.editReply("Something went wrong with setting the reply :(");
             return;
         }
@@ -74,7 +74,7 @@ module.exports = {
         try {
             res = await query("SELECT COUNT(*) FROM reminders WHERE owner_id = $1", [discID]);
         } catch (err) {
-            console.log(err);
+            console.error(err);
             await interaction.editReply("Something went wrong with setting the reply :(");
             return;
         };
@@ -88,7 +88,7 @@ module.exports = {
         let dueDate = new Date(Date.now())
         dueDate.setTime(currentDate.getTime() + futureDateInMillis + 1000);
 
-        //since my way of doing ids *can* result in conflicts, this will try 10 times to insert
+        //since my way of doing ids *can* result in primary key conflicts, this will try multiple times to insert
         for (let i = 0; true; i++) {
             try {
                 let remid = Number(nanoid());
@@ -108,7 +108,6 @@ module.exports = {
                 return;
             }
         }
-         
 
         interaction.editReply({content: `Reminder set to go off in ${msToRelTime(dueDate)}`});
 	}
