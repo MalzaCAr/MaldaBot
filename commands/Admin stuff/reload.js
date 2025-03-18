@@ -12,6 +12,7 @@ module.exports = {
 		.setDescription('Name of the command to reload')
 		.setRequired(true))
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+		
 	async execute(interaction) {
 		const commandName = interaction.options.data.find(arg => arg.name === 'command').value.toLowerCase();
 

@@ -25,7 +25,6 @@ client.commands = new Collection();
 
 // When the client is ready, run this code (only once)
 let emojis;
-let reg_queue = [];
 client.once('ready', async() => {
 	client.guilds.cache.forEach(async guild => {
 		await deployCommands(guild.id, guild.name, client.commands);
@@ -52,8 +51,10 @@ client.once('ready', async() => {
 client.on('messageCreate', message => {
     if (message.author.bot) return false;
 	
-	let reg_chnl_id = 815546700072615968;
-	if (message.channelId == reg_chnl_id) {
+	//malda server, TCS
+	let reg_chnl_id = [815546700072615968n, 810129293719896113n];
+
+	if (reg_chnl_id.includes(BigInt(message.channelId))) {
 		reg(message, client);
 	}
 

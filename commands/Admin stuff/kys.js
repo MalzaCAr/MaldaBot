@@ -21,6 +21,10 @@ module.exports = {
 		}*/
 
 		//await interaction.reply(meme[0].url);
+		if (interaction.member.id != 274853598280810496) {
+			interaction.reply("No u");
+			return;
+		}
 		await interaction.deferReply();
 
 		db.killClient();
