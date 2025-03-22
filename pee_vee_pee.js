@@ -21,7 +21,7 @@ function shuffleArray(array) {
 
 function findUsrIndex(array, id) {
     for (let i = 0; i < array.length; i++) {
-        if (array[i].id == id) return i;
+        if (array[i].id === String(id)) return i;
     }
     return -1;
 }
@@ -80,8 +80,9 @@ module.exports = {
                     message.channel.send("You aren't in the queue >:(");
                     break;
                 }
-                let user = reg_queue.pop(index);
-                message.channel.send(`No more <@${user.id}> in queue`);
+                let user = reg_queue[index].id;
+                reg_queue.splice(index, 1);
+                message.channel.send(`No more <@${user}> in queue`);
 				break;
 			
 			case "?clear":
