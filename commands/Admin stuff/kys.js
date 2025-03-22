@@ -6,8 +6,8 @@ const { database } = require('../../db/index');
 module.exports = {
 	data: new SlashCommandBuilder()
     .setName(`kys`)
-    .setDescription(`fucking kills the bot lol`)
-	.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDescription(`fucking kills the bot lol`),
+	//.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		/*const memes = database.collection('memes');
 
