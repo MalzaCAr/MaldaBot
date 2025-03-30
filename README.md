@@ -63,7 +63,6 @@ Where `<your_server_id>` is the server id you can get by right clicking the serv
 
 ```env
 DISCORD_TOKEN=<your_bot_token>
-MDBURI=<your_connection_string>
 ```
 
 Where `<your_connection_string>` is your cluster's connection string.
