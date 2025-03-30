@@ -57,16 +57,13 @@ The files look like this:
 }
 ```
 
-Where `<your_server_id>` is the server id you can get by right clicking the server your bot is in (you'll have to activate developer mode in your user settings under advanced) and <your_bot's_id> is the bot's id you can also get by right clicking the bot (it's also `client id` in the discord dev portal)
+Where <your_bot's_id> is the bot's id you can get by right clicking the bot if you have developer mode on in discord's settings (it's also `client id` in the discord dev portal)
 
 #### .env
 
 ```env
 DISCORD_TOKEN=<your_bot_token>
-MDBURI=<your_connection_string>
 ```
-
-Where `<your_connection_string>` is your cluster's connection string.
 
 ### 4. ~~Suffer~~ Enjoy the bot
 
