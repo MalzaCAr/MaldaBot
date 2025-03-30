@@ -25,12 +25,12 @@ client.commands = new Collection();
 
 // When the client is ready, run this code (only once)
 let emojis;
-let reg_queue = [];
 client.once('ready', async() => {
 	client.guilds.cache.forEach(async guild => {
 		await deployCommands(guild.id, guild.name, client.commands);
 	});
 	await run_db();
+	console.log('[DEV BOT]');
 	console.log('bot good yes'); //bot ready
 
 	emojis = (client.emojis.cache.map((e) => {  //creates a list of every emoji in the server
