@@ -21,7 +21,7 @@ module.exports = {
 		}*/
 
 		//await interaction.reply(meme[0].url);
-		if (interaction.member.id != 274853598280810496) {
+		if (interaction.member.id != 274853598280810496n) {
 			interaction.reply("No u");
 			return;
 		}
