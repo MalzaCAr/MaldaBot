@@ -28,6 +28,6 @@ module.exports = {
                 `**Due**: ${msToRelTime(row[2])}\n\n`;
         }   
 
-        interaction.reply({content: output/*, ephemeral: true*/});
+        interaction.reply({content: output, ephemeral: true});
         }
 };

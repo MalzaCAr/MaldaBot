@@ -51,15 +51,12 @@ client.once('ready', async() => {
 
 client.on('messageCreate', message => {
     if (message.author.bot) return false;
-	
-	let reg_chnl_id = 815546700072615968;
-	if (message.channelId == reg_chnl_id) {
-		reg(message, client);
-	}
 
-	if (message.mentions.has("274853598280810496")) { //malzers' id
-		let randomID = Math.floor(Math.random() * emojis.length);
-		message.channel.send(emojis[randomID]);
+	//malda server, TCS
+	let reg_chnl_id = ["815546700072615968", "810129293719896113"];
+
+	if (reg_chnl_id.includes(message.channelId.toString())) {
+		reg(message, client, message.channelId);
 	}
 
     if (message.mentions.has(client.user.id)) {
@@ -77,9 +74,6 @@ client.on('messageCreate', message => {
 				`);
 				break;
 			case "585889289724755989": //DOGE
-				for (let i = 0; i < 5; i++) {
-					message.react(message.guild.emojis.cache.find(emoji => emoji.name === `aqua_panic${i}`));
-				}
 				message.channel.send(`<a:aqua_panic0:838511611361886228>`);
 				break;
 			case "320241358440759307": //hadi

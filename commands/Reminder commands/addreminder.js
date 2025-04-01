@@ -27,7 +27,7 @@ module.exports = {
         const nonoterms = [/@everyone/i, /@here/i, /<@&\d+>/g]; 
         for (let nonoterm of nonoterms) {
             if (reminderMemo.search(nonoterm) != -1) {
-                interaction.reply({content: `no, fuck off <@${discID}>`});
+                interaction.reply({content: `no, fuck off <@${discID}>`, ephemeral: true});
                 return;
             }
         }
@@ -39,8 +39,8 @@ module.exports = {
         let timeString = interaction.options.data.find(arg => arg.name === 'time').value; //example 1d6h30m
 
         if (timeString == "help") {
-            await interaction.reply({content:"Type in a number followed by a keyword such as `minutes`, `mins`, `m` etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`."/*, ephemeral: true*/});
-            await interaction.followUp({content: "Example: '5 weeks 1 day 12 hours 30 mins', \nor: '5w1d12h30m'"/*, ephemeral: true*/});
+            await interaction.reply({content:"Type in a number followed by a keyword such as `minutes`, `mins`, `m` etc. \nThis command supports `minutes`, `hours`, `days` and `weeks`.", ephemeral: true});
+            await interaction.followUp({content: "Example: '5 weeks 1 day 12 hours 30 mins', \nor: '5w1d12h30m'", ephemeral: true});
             return;
         }
 
@@ -51,11 +51,11 @@ module.exports = {
 
         //some idiot proofing :P
         if (futureDateInMillis <= 0) { 
-            await interaction.editReply({content: "Wrong syntax in `time` field"});
+            await interaction.editReply({content: "Wrong syntax in `time` field", ephemeral: true});
             return;
         }
         if (futureDateInMillis > 31556926000) {
-            await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future"});
+            await interaction.editReply({content: "Sorry, the reminder can't be over 1 year into the future", ephemeral: true});
             return;
         }
 
@@ -66,7 +66,7 @@ module.exports = {
             res = await query("INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", [discID, nickname, guildID]);
         } catch(err) {
             console.error(err);
-            await interaction.editReply("Something went wrong with setting the reply :(");
+            await interaction.editReply({content: "Something went wrong with setting the reply :(", ephemeral: true});
             return;
         }
 
@@ -75,12 +75,12 @@ module.exports = {
             res = await query("SELECT COUNT(*) FROM reminders WHERE owner_id = $1", [discID]);
         } catch (err) {
             console.error(err);
-            await interaction.editReply("Something went wrong with setting the reply :(");
+            await interaction.editReply({content: "Something went wrong with setting the reply :(", ephemeral: true});
             return;
         };
 
         if (res.rows[0].count >= reminderCap) {
-            await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`});
+            await interaction.editReply({content: `Sorry, you can't have more than ${reminderCap} reminders`, ephemeral: true});
             return;
         }
 
@@ -104,7 +104,7 @@ module.exports = {
                 }
 
                 console.log(err);
-                await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :("});
+                await interaction.editReply({content: "Something went wrong with setting the reminder. Try again later :(", ephemeral: true});
                 return;
             }
         }

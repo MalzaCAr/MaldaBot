@@ -2,7 +2,6 @@ const { random } = require("nanoid");
 
 let reg_queue = [], last_queue = [];
 let xVx = 2;
-let reg_channel_id = "815546700072615968";
 let no_more_cnt = 0;
 
 /**
@@ -22,19 +21,26 @@ function shuffleArray(array) {
 
 function findUsrIndex(array, id) {
     for (let i = 0; i < array.length; i++) {
-        if (array[i].id == id) return i;
+        if (array[i].id === String(id)) return i;
     }
     return -1;
 }
 
 module.exports = {
-    reg: function(message, client) {
-        let channel = client.channels.cache.get(reg_channel_id);
+    reg: function(message, client, channelID) {
+        let channel = client.channels.cache.get(channelID);
         let msg_command = message.content;
 
         switch (msg_command) {
 			case "?reg":
 			case "?r":
+                for (entry of reg_queue) {
+                    if (entry.id == message.author.id) {
+                        channel.send("You are already in queue");
+                        return;
+                    }
+                }
+
 				reg_queue.push({
 					id: message.author.id,
 					name: message.author.displayName
@@ -74,8 +80,9 @@ module.exports = {
                     message.channel.send("You aren't in the queue >:(");
                     break;
                 }
-                let user = reg_queue.pop(index);
-                message.channel.send(`No more @<${user.id}> in queue`);
+                let user = reg_queue[index].id;
+                reg_queue.splice(index, 1);
+                message.channel.send(`No more <@${user}> in queue`);
 				break;
 			
 			case "?clear":
@@ -138,6 +145,7 @@ module.exports = {
                         return;
                     }
                     xVx = amount;
+                    reg_queue = [];
 
                     channel.send(`Queue is now a ${xVx} v ${xVx}`);
                 }
