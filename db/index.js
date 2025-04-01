@@ -134,5 +134,4 @@ module.exports = {
 
         return `in ${new Intl.ListFormat('en-GB', {style: 'long', type: 'conjunction'}).format(replyArray)}, on <t:${Math.floor(dueDateMs/1000)}:F>`;
     }
-    
 }

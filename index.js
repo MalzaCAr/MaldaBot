@@ -30,6 +30,7 @@ client.once('ready', async() => {
 		await deployCommands(guild.id, guild.name, client.commands);
 	});
 	await run_db();
+	console.log('[DEV BOT]');
 	console.log('bot good yes'); //bot ready
 
 	emojis = (client.emojis.cache.map((e) => {  //creates a list of every emoji in the server
@@ -48,13 +49,11 @@ client.once('ready', async() => {
 	//channel.send (funnyOneLiners[randomNum]);
 });
 
-client.on('messageCreate', message => {
+client.on('messageCreate', async message => {
     if (message.author.bot) return false;
 
 	//malda server, TCS
-	let reg_chnl_id = ["815546700072615968", "810129293719896113"];
-
-	if (reg_chnl_id.includes(message.channelId.toString())) {
+	if (message.content[0] == '?') {
 		reg(message, client, message.channelId);
 	}
 
