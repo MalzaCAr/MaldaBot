@@ -7,11 +7,11 @@ module.exports = {
         .setDescription(`Show all of your active reminders`),
 
 	async execute(interaction) {
-        let discID = interaction.member.id;
+        let discID = interaction.member.id, guildId = interaction.member.guild.id;
 
         let res = await query({
-            text: "SELECT rem_id, memo, due_date FROM reminders WHERE owner_id = $1", 
-            values: [discID],
+            text: "SELECT rem_id, memo, due_date FROM reminders WHERE owner_id = $1 AND server_id = $2", 
+            values: [discID, guildId],
             rowMode: 'array',
         });
 
