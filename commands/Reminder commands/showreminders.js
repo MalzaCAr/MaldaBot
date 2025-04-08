@@ -16,7 +16,7 @@ module.exports = {
         });
 
         if (res.rowCount == 0) {
-            interaction.reply({content: "You have no reminders set"});
+            interaction.reply({content: "You have no reminders set", ephemeral: true});
             return;
         }
 
