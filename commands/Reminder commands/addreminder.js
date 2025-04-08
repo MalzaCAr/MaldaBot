@@ -92,8 +92,8 @@ module.exports = {
         for (let i = 0; true; i++) {
             try {
                 let remid = Number(nanoid());
-                res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5)", 
-                    [remid, reminderMemo, dueDate, channelID, discID]
+                res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5, $6)", 
+                    [remid, reminderMemo, dueDate, channelID, discID, guildID]
                 );
                 break;
             } catch (err) {

@@ -11,11 +11,11 @@ module.exports = {
 
 	async execute(interaction) {
         let reqID = Number(interaction.options.data.find(arg => arg.name === "reminderid").value); //requested id
-        let discID = interaction.member.id;
+        let discID = interaction.member.id, guildId = interaction.member.guild.id;
 
         let res;
         try {
-            res = await query("DELETE FROM reminders WHERE owner_id = $1 AND rem_id = $2", [discID, reqID]);
+            res = await query("DELETE FROM reminders WHERE owner_id = $1 AND rem_id = $2 AND server_id = $3", [discID, reqID, guildId]);
         } catch(err) {
             console.error(err);
             interaction.reply({content: `Something went wrong with the deletion of the reminder`, ephemeral: true});
