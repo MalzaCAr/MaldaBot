@@ -54,7 +54,7 @@ client.on('messageCreate', async message => {
 
 	//malda server, TCS
 	if (message.content[0] == '?') {
-		reg(message, client, message.channelId);
+		reg(message, client);
 	}
 
     if (message.mentions.has(client.user.id)) {
