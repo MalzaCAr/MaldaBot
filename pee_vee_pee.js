@@ -36,7 +36,14 @@ async function addUser(channel, user, xVx) {
         return;
     } 
     
-    let queue_lenght = await query("SELECT COUNT(*) FROM reg WHERE channel_id = $1", [channelID]);
+    let queue_lenght;
+    try {
+        queue_lenght = await query("SELECT COUNT(*) FROM reg WHERE channel_id = $1", [channelID]);
+    } catch(err) {
+        console.error(err);
+        channel.send("Something went wrong :(");
+        return;
+    }
     queue_lenght = queue_lenght.rows[0].count;
 
     channel.send(`Player added to queue. Queue size is now: ${'`' + queue_lenght + '`'}`);
@@ -44,10 +51,17 @@ async function addUser(channel, user, xVx) {
     if (queue_lenght >= xVx * 2) {
         channel.send("Preparing match");
         
-        let reg_queue = await query({
-            text: "SELECT disc_id, nickname FROM reg WHERE channel_id = $1",
-            values: [channelID]
-        });
+        let reg_queue;
+        try {
+            reg_queue = await query({
+                text: "SELECT disc_id, nickname FROM reg WHERE channel_id = $1",
+                values: [channelID]
+            });
+        } catch (err) {
+            console.error(err);
+            channel.send("Something went wrong :(");
+            return;
+        }
 
         last_queue = reg_queue.rows.slice();
         no_more_cnt = 0;
@@ -66,7 +80,13 @@ async function addUser(channel, user, xVx) {
         }
         res += team1.slice(0, team1.length - 2) + "\n" + team2.slice(0, team1.length - 2);
 
-        query({text: "DELETE FROM reg WHERE channel_id = $1", values: [channelID]});
+        try {
+            query({text: "DELETE FROM reg WHERE channel_id = $1", values: [channelID]});
+        } catch(err) {
+            console.error(err);
+            channel.send("Something went wrong :(");
+            return;
+        }
 
         channel.send(res);
     }
@@ -90,28 +110,47 @@ module.exports = {
                 channel.send(`Why the fuck do you want a ${amount} v ${amount}`);
                 return;
             }
-            
-            await query({
-                text: "INSERT INTO channels VALUES ($1, $2) ON CONFLICT(channel_id) DO UPDATE SET queue_type = $2 WHERE channels.channel_id = $1",
-                values: [channelID, amount]
-            });
-           
-            await query({
-                text: "DELETE FROM reg WHERE channel_id = $1",
-                values: [channelID]
-            });
+            try {
+                await query({
+                    text: "INSERT INTO channels VALUES ($1, $2) ON CONFLICT(channel_id) DO UPDATE SET queue_type = $2 WHERE channels.channel_id = $1",
+                    values: [channelID, amount]
+                });
 
+                await query({
+                    text: "DELETE FROM reg WHERE channel_id = $1",
+                    values: [channelID]
+                });
+            } catch(err) {
+                console.error(err);
+                channel.send("Something went wrong :(");
+                return;
+            }
+           
             channel.send(`Queue is now a ${amount} v ${amount}`);
             return;
         }
 
-        let reg_chnl_id = await query("SELECT COUNT(*) FROM channels WHERE channel_id = $1", [channelID]);
+        let reg_chnl_id;
+        try { 
+            reg_chnl_id = await query("SELECT COUNT(*) FROM channels WHERE channel_id = $1", [channelID]);
+        } catch(err) {
+            console.error(err);
+            channel.send("Something went wrong :(");
+            return;
+        }
         if (reg_chnl_id.rows[0].count == 0) return;
 
-        let xVx = await query({
-            text: "SELECT queue_type FROM channels WHERE channel_id = $1",
+        let xVx;
+        try {
+            xVx = await query({
+                text: "SELECT queue_type FROM channels WHERE channel_id = $1",
                 values: [channelID]
-        });
+            });
+        } catch(err) {
+            console.error(err);
+            channel.send("Something went wrong :(");
+            return;
+        }
         xVx = xVx.rows[0].queue_type;
 
         if (/^\?mpreg /.test(msg_command)) {
@@ -163,10 +202,18 @@ module.exports = {
 			case "?unreg":
 			case "?ureg":
 			case "?ur":
-                let to_delete = await query({
-                    text: "DELETE FROM reg WHERE disc_id = $1 AND channel_id = $2",
-                    values: [message.author.id, channelID]
-                });
+                let to_delete;
+                try {
+                    await query({
+                        text: "DELETE FROM reg WHERE disc_id = $1 AND channel_id = $2",
+                        values: [message.author.id, channelID]
+                    });
+                } catch(err) {
+                    console.error(err);
+                    channel.send("Something went wrong :(");
+                    return;
+                }
+
                 if (to_delete.rowCount == 0) {
                     channel.send("You aren't in the queue >:(");
                 }
@@ -177,16 +224,29 @@ module.exports = {
 			
 			case "?clear":
 			case "?c":
-                await query("DELETE FROM reg WHERE channel_id = $1", [channelID]);
+                try {
+                    await query("DELETE FROM reg WHERE channel_id = $1", [channelID]);
+                } catch(err) {
+                    console.error(err);
+                    channel.send("Something went wrong :(");
+                    return;
+                }
                 message.channel.send("No more queue");
 				break;
 
 			case "?show":
 			case "?s":
-                let reg_queue = await query({
-                    text: "SELECT nickname FROM reg WHERE channel_id = $1",
-                    values: [channelID]
-                });
+                let reg_queue;
+                try {
+                    reg_queue = await query({
+                        text: "SELECT nickname FROM reg WHERE channel_id = $1",
+                        values: [channelID]
+                    });
+                } catch(err) {
+                    console.error(err);
+                    channel.send("Something went wrong :(");
+                    return;
+                }
 
                 if (reg_queue.rowCount == 0) {
                     message.channel.send("There's noone in queue");
@@ -229,14 +289,20 @@ module.exports = {
 				break;
 
             case "?deletequeue":
-                await query({
-                  text: "DELETE FROM reg WHERE channel_id = $1",
-                    values: [channelID]
-                });
-                await query({
-                    text: "DELETE FROM channels WHERE channel_id = $1",
-                    values: [channelID]
-                });
+                try {
+                    await query({
+                    text: "DELETE FROM reg WHERE channel_id = $1",
+                        values: [channelID]
+                    });
+                    await query({
+                        text: "DELETE FROM channels WHERE channel_id = $1",
+                        values: [channelID]
+                    });
+                } catch(err) {
+                    console.error(err);
+                    channel.send("Something went wrong :(");
+                    return;
+                }
                 channel.send("This channel is no longer a queue");
                 break;
 			
