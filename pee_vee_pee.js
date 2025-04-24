@@ -205,7 +205,7 @@ module.exports = {
 			case "?ur":
                 let to_delete;
                 try {
-                    await query({
+                    to_delete = await query({
                         text: "DELETE FROM reg WHERE disc_id = $1 AND channel_id = $2",
                         values: [message.author.id, channelID]
                     });
