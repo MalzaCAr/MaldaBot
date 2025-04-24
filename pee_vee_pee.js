@@ -97,6 +97,7 @@ module.exports = {
         let channelID = message.channelId;
         let channel = client.channels.cache.get(channelID);
         let msg_command = message.content;
+        msg_command = msg_command.toLowerCase();
         
         if (/^\?setupqueue /.test(msg_command)) {
             let amount = parseInt(msg_command.slice(12)); //?setupqueue x
