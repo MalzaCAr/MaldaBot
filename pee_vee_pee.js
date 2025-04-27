@@ -78,7 +78,7 @@ async function addUser(channel, user, xVx) {
 
             else team2 += `<@${order[i].disc_id}>, `;
         }
-        res += team1.slice(0, team1.length - 2) + "\n" + team2.slice(0, team1.length - 2);
+        res += team1.slice(0, team1.length - 2) + "\n" + team2.slice(0, team2.length - 2);
 
         try {
             query({text: "DELETE FROM reg WHERE channel_id = $1", values: [channelID]});
