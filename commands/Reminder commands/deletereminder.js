@@ -15,7 +15,7 @@ module.exports = {
 
         let res;
         try {
-            res = await query("DELETE FROM reminders WHERE owner_id = $1 AND rem_id = $2 AND server_id = $3", [discID, reqID, guildId]);
+            res = await query("DELETE FROM reminders WHERE disc_id = $1 AND rem_id = $2", [discID, reqID]);
         } catch(err) {
             console.error(err);
             interaction.reply({content: `Something went wrong with the deletion of the reminder`, ephemeral: true});

@@ -42,14 +42,91 @@ const regexes = [
 ];
 
 module.exports = {
+    /**
+     * Used to query the database
+     * @param {string} text //the query text
+     * @param {array} params //the parameters for the query
+     * @param {function} callback //the callback function
+     * @returns {Promise}
+     */
     query: async(text, params, callback) => {
         return pool.query(text, params, callback);
     },
+    /**
+     * Used to setup the database tables
+     */
     run_db: async() => {
+        const client = await pool.connect();
+
         try {
-            const client = await pool.connect();
-            return client;
-        } catch (error){
+            await client.query('BEGIN');
+
+            /*await client.query('DROP TABLE IF EXISTS Servers CASCADE;');
+            await client.query('DROP TABLE IF EXISTS Channels CASCADE;');
+            await client.query('DROP TABLE IF EXISTS Users CASCADE;');
+            await client.query('DROP TABLE IF EXISTS Users_Servers CASCADE;');
+            await client.query('DROP TABLE IF EXISTS Reminders CASCADE;');
+            await client.query('DROP TABLE IF EXISTS reg CASCADE;');*/
+            
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS Servers(
+                    guild_id BIGINT PRIMARY KEY,
+                    guild_name VARCHAR(100) NOT NULL
+                );`
+            );
+
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS Channels(
+                    channel_id BIGINT PRIMARY KEY,
+                    channel_name VARCHAR(32) NOT NULL,
+                    guild_id BIGINT NOT NULL,FOREIGN KEY (guild_id) REFERENCES Servers(guild_id)
+                );`
+            );
+
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS Users(
+                    disc_id BIGINT PRIMARY KEY,
+                    nickname VARCHAR(32) NOT NULL);`
+            );
+
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS Users_Servers(
+                    disc_id BIGINT NOT NULL,
+                    guild_id BIGINT NOT NULL,
+                    PRIMARY KEY (disc_id, guild_id),
+                    FOREIGN KEY (disc_id) REFERENCES Users(disc_id),
+                    FOREIGN KEY (guild_id) REFERENCES Servers(guild_id)
+                );`
+            );
+
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS Reminders(
+                    rem_id INT PRIMARY KEY,
+                    memo VARCHAR(255) NOT NULL,
+                    due_date TIMESTAMP NOT NULL,
+                    channel_id BIGINT NOT NULL,
+                    FOREIGN KEY (channel_id) REFERENCES Channels(channel_id),
+                    disc_id BIGINT NOT NULL,
+                    FOREIGN KEY (disc_id) REFERENCES Users(disc_id)
+                );`
+            );
+
+            await client.query(
+                `CREATE TABLE IF NOT EXISTS reg (
+                    reg_id SERIAL PRIMARY KEY,
+                    disc_id BIGINT NOT NULL,
+                    FOREIGN KEY(disc_id) REFERENCES Users(disc_id),
+                    channel_id BIGINT NOT NULL,
+                    FOREIGN KEY (channel_id) REFERENCES Channels(channel_id),
+                    CONSTRAINT unique_pair UNIQUE (disc_id, channel_id)
+                );`
+            );
+
+            await client.query('COMMIT');
+
+            await client.release();
+        } catch (error) {
+            await client.query('ROLLBACK');
             console.error(error);
         }
     },
@@ -63,14 +140,11 @@ module.exports = {
     },
 
     /**
-     * used to kill the mongodb client
+     * used to get a client from the connection pool
+     * @returns {Promise<import('pg').PoolClient>} 
      */
-    killClient: async() => {
-        try {
-            await pool.end();
-        } catch(err) {
-            return err;
-        }
+    getClient: function() {
+        return pool.connect();
     },
 
     /**

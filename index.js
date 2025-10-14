@@ -97,30 +97,6 @@ client.on('interactionCreate', async interaction => {
 	} catch (error) {
 		console.error(error);
 	}
-
-	commandTime = new Date(Date.now());
-	try {
-		let discID = interaction.member.id;
-		let nickname = interaction.member.user.username;
-		let guildID = interaction.guild.id, guildName = interaction.guild.name;
-
-		await query({
-			text: "INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;",
-			values:[guildID, guildName]
-		});
-    
-		await query({
-			text:"INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", 
-			values: [discID, nickname, guildID]
-		});
-
-		await query({
-			text: "INSERT INTO command_log VALUES ($1, $2, $3, $4, $5, $6)",
-			values: [interaction.id, interaction.guildId, interaction.channelId, interaction.user.id, interaction.commandName, commandTime]
-		});
-	} catch(err) {
-		console.error(err);
-	}
 });
 
 //the following part handles the triggering of reminders
@@ -131,7 +107,7 @@ setInterval(async function() {
 	let res;
 	try {
 		res = await query({
-			text: "SELECT (memo, channel_id, owner_id, rem_id) FROM reminders WHERE due_date <= $1", 
+			text: "SELECT (memo, channel_id, disc_id, rem_id) FROM reminders WHERE due_date <= $1", 
 			values: [currentDate],
 			rowMode: "array",
 		});

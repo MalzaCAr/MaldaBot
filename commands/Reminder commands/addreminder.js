@@ -1,6 +1,6 @@
 const { SlashCommandBuilder} = require('@discordjs/builders');
 const { PermissionFlagsBits } = require('discord-api-types/v10');
-const { query, cmdInptToMs, nanoid, msToRelTime } = require('../../db/index');
+const { query, cmdInptToMs, nanoid, msToRelTime, getClient } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -61,18 +61,54 @@ module.exports = {
 
         //DATABASE STUFF
         let res;
+        let client = await getClient();
         try {
-            res = await query("INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;", [guildID, guildName]);
-            res = await query("INSERT INTO users VALUES ($1, $2, $3) ON CONFLICT (disc_id) DO NOTHING;", [discID, nickname, guildID]);
+            let channelName = interaction.channel.name;
+            let guildName = interaction.guild.name;
+
+            await client.query('BEGIN');
+
+            await client.query({
+                text: "INSERT INTO servers VALUES ($1, $2) ON CONFLICT (guild_id) DO NOTHING;",
+                values:[guildID, guildName]
+            });
+            
+            await client.query({
+                text: "INSERT INTO channels VALUES ($1, $2, $3) ON CONFLICT (channel_id) DO NOTHING;",
+                values: [channelID, channelName, guildID]
+            });
+
+            await client.query({
+                text:"INSERT INTO users VALUES ($1, $2) ON CONFLICT (disc_id) DO NOTHING;", 
+                values: [discID, nickname]
+            });
+
+            await client.query({
+                text: "INSERT INTO users_servers VALUES ($1, $2) ON CONFLICT (disc_id, guild_id) DO NOTHING;",
+                values: [discID, guildID]
+            });
+
+            await client.query('COMMIT');
+
+            client.release();
+
         } catch(err) {
+            await client.query('ROLLBACK');
+            client.release();
+
             console.error(err);
             await interaction.editReply({content: "Something went wrong with setting the reply :(", ephemeral: true});
             return;
         }
 
-        let reminderCap = 10; //the amount of reminders one can have at a time
+        let reminderCap = 10; //the amount of reminders one can have at a time per server
         try {
-            res = await query("SELECT COUNT(*) FROM reminders WHERE owner_id = $1", [discID]);
+            res = await query(`
+                SELECT COUNT(*) FROM reminders r 
+                JOIN Channels c ON r.channel_id = c.channel_id
+                JOIN Servers s on c.guild_id = s.guild_id
+                WHERE r.disc_id = $1 AND s.guild_id = $2
+            `, [discID, guildID]);
         } catch (err) {
             console.error(err);
             await interaction.editReply({content: "Something went wrong with setting the reply :(", ephemeral: true});
@@ -92,8 +128,8 @@ module.exports = {
         for (let i = 0; true; i++) {
             try {
                 let remid = Number(nanoid());
-                res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5, $6)", 
-                    [remid, reminderMemo, dueDate, channelID, discID, guildID]
+                res = await query("INSERT INTO reminders VALUES ($1, $2, $3, $4, $5)", 
+                    [remid, reminderMemo, dueDate, channelID, discID]
                 );
                 break;
             } catch (err) {

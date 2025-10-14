@@ -10,7 +10,12 @@ module.exports = {
         let discID = interaction.member.id, guildId = interaction.member.guild.id;
 
         let res = await query({
-            text: "SELECT rem_id, memo, due_date FROM reminders WHERE owner_id = $1 AND server_id = $2", 
+            text: `
+                SELECT r.rem_id, r.memo, r.due_date 
+                FROM Reminders r
+                JOIN Channels c ON r.channel_id = c.channel_id
+                JOIN Servers s on c.guild_id = s.guild_id
+                WHERE r.disc_id = $1 AND s.guild_id = $2`, 
             values: [discID, guildId],
             rowMode: 'array',
         });
