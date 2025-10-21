@@ -27,16 +27,9 @@ class keywordRegex {
     name = "minute"; 
 }
 
-//List of regexes for the keywords for time input
-//Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
-//Also make sure to go from biggest unit of time to smallest, otherwise rip code
-//const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
 const minRegex = /minutes?|mins?|m/i;
-//const hourRegex = [/hours/i, /hour/i, /h/i];
 const hourRegex = /hours?|h/i;
-//const dayRegex = [/days/i, /day/i, /d/i];
 const dayRegex = /days?|d/i;
-//const weekRegex = [/weeks/i, /week/i, /w/i];
 const weekRegex = /weeks?|w/i;
 
 const keywords = [
