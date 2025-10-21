@@ -27,7 +27,6 @@ module.exports = {
 		}
 		await interaction.deferReply();
 
-		db.killClient();
 		console.log("pool closed");
 
 		await interaction.editReply("a");

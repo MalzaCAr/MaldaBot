@@ -10,18 +10,19 @@ const pool = new Pool({
     host: 'localhost',
     port: 5432,
     user: 'postgres',
+    password: 'postgres',
     database: 'maldadb',
     max: 20,
     connectionTimeoutMillis: 20000
 });
 
 class keywordRegex {
-    constructor(inputArr, amount, name) {
-        this.regexArr = this.regexArr.concat(inputArr);
+    constructor(regex, amount, name) {
+        this.regex = regex;
         this.amountOfMs = amount;
         this.name = name;
     };
-    regexArr = [];
+    regex = /minutes?|mins?|m/;
     amountOfMs = 60000; //lowest possible
     name = "minute"; 
 }
@@ -29,12 +30,16 @@ class keywordRegex {
 //List of regexes for the keywords for time input
 //Make sure to go from longer words to shorter, otherwise it'll e.g. find 'min' then 'mins'.
 //Also make sure to go from biggest unit of time to smallest, otherwise rip code
-const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
-const hourRegex = [/hours/i, /hour/i, /h/i];
-const dayRegex = [/days/i, /day/i, /d/i];
-const weekRegex = [/weeks/i, /week/i, /w/i];
+//const minRegex = [/minutes/i,/minute/i,/mins/i, /min/i, /m/i, ]; 
+const minRegex = /minutes?|mins?|m/i;
+//const hourRegex = [/hours/i, /hour/i, /h/i];
+const hourRegex = /hours?|h/i;
+//const dayRegex = [/days/i, /day/i, /d/i];
+const dayRegex = /days?|d/i;
+//const weekRegex = [/weeks/i, /week/i, /w/i];
+const weekRegex = /weeks?|w/i;
 
-const regexes = [
+const keywords = [
     new keywordRegex(weekRegex, 604800000, "weeks"), //weeks
     new keywordRegex(dayRegex, 86400000, "days"), //days
     new keywordRegex(hourRegex, 3600000, "hours"), //hours
@@ -130,7 +135,6 @@ module.exports = {
             console.error(error);
         }
     },
-
     /**
      * random id generator
      * @returns {string}
@@ -138,7 +142,6 @@ module.exports = {
     nanoid: function() {
         return nanoid();
     },
-
     /**
      * used to get a client from the connection pool
      * @returns {Promise<import('pg').PoolClient>} 
@@ -146,39 +149,36 @@ module.exports = {
     getClient: function() {
         return pool.connect();
     },
-
     /**
-     * used to parse an input string and convert it to milliseconds (int).
+     * used to parse an input date and convert it to milliseconds (int).
      * @param {string} inputString //the string you wish to parse
      * @returns {int}
      */
     cmdInptToMs: function(inputString) {
-        inputString = inputString.toLowerCase().replace(/ /g, ""); //fuck case sensitivity & spaces
         let result = 0;
-        for (let regex of regexes) {
-            let position; //position of keyword
-            for (let i of regex.regexArr) {
-                position = inputString.search(i);
-                if (position == -1) continue; //search returns -1 if not found, so checking that
+        for (let keyword of keywords) {
+            let position; 
+            position = inputString.search(keyword.regex)
+            if (position == -1) continue; //search returns -1 if not found, so checking that
             
-                let number = ""; 
+            let number = ""; 
+            for (let j = position - 1; j >= 0; j--) { //goes backwards from keyword until it finds a non-digit
+                if (inputString[j] == " ") continue; 
+                if (isNaN(parseInt(inputString[j]))) break;
+                number += inputString[j];
+            }
             
-                for (let j = position - 1; j >= 0 && !isNaN(parseInt(inputString[j])); j--) { //goes backwards from keyword until it finds a non-digit
-                    number += inputString[j];
-                }
+            if (number.length > 1) { //since the numbers are added backwards, the string must be inverted to display the right number
+                number = number.split("").reverse().join("")
+            }
 
-                if (number.length > 1) { //since the numbers are added backwards, the string must be inverted to display the right number
-                    number = number.split("").reverse().join("")
-                }
-                result += number * regex.amountOfMs;
-                break;
-            } 
+            result += number * keyword.amountOfMs;
         }
         return result;
     },
 
     /**
-     * Used to convert a given amount of time in milliseconds into relative time from now.
+     * Used to convert a given amount of time in milliseconds into relative time in the future from now.
      * @param {Int} dueDateMs
      * @returns {String}
      */
@@ -187,17 +187,18 @@ module.exports = {
 
         let replyArray = [];
 
-        for (let i of regexes) {
-            if (timeDiff / i.amountOfMs < 1) continue;
+        for (let keyword of keywords) {
+            let div = parseInt(timeDiff / keyword.amountOfMs);
+            if (div < 1) continue;
 
-            let amount = parseInt(timeDiff / i.amountOfMs);
-            timeDiff %= i.amountOfMs;
+            let amount = div;
+            timeDiff %= keyword.amountOfMs;
 
             if (amount == 1) {
-                replyArray.push(`1 ${i.name.slice(0, i.name.length - 1)}`);
+                replyArray.push(`1 ${keyword.name.slice(0, keyword.name.length - 1)}`);
             }                                        
             else {
-                replyArray.push(`${amount} ${i.name}`);
+                replyArray.push(`${amount} ${keyword.name}`);
             }
         }
 
