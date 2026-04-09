@@ -1,6 +1,6 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
-const { Client, Intents, Message, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Message, Collection } = require('discord.js');
 const { deployCommands } = require ('./deploy-commands');
 const { query, run_db } = require('./db/index');
 const dotenv = require('dotenv');
@@ -10,17 +10,13 @@ dotenv.config();
 const token = process.env.DISCORD_TOKEN;
 
 // Create a new client instance
-const serverIntents = new Intents();
-serverIntents.add(
-	Intents.FLAGS.GUILDS,
-	Intents.FLAGS.GUILD_MESSAGES,
-	Intents.FLAGS.GUILD_PRESENCES,
-	Intents.FLAGS.GUILD_MEMBERS,
-	Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-	Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS
-);
-
-const client = new Client({ intents: serverIntents });
+const client = new Client({ intents: [
+	GatewayIntentBits.Guilds,
+	GatewayIntentBits.GuildMessages,
+	GatewayIntentBits.GuildPresences,
+	GatewayIntentBits.GuildMembers,
+	GatewayIntentBits.GuildMessageReactions,
+] });
 client.commands = new Collection();
 
 // When the client is ready, run this code (only once)

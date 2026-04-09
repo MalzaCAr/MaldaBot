@@ -1,11 +1,14 @@
-const { SlashCommandBuilder} = require('@discordjs/builders');
-const { PermissionFlagsBits } = require('discord-api-types/v10');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { PermissionFlagsBits, ApplicationIntegrationType, InteractionContextType } = require('discord-api-types/v10');
 const { query, cmdInptToMs, nanoid, msToRelTime, getClient } = require('../../db/index');
 
 module.exports = {
 	data: new SlashCommandBuilder()
         .setName(`addreminder`)
         .setDescription(`Adds a new reminder.`)
+
+        .setIntegrationTypes(ApplicationIntegrationType.GuildInstall, ApplicationIntegrationType.UserInstall)
+        .setContexts(InteractionContextType.Guild, InteractionContextType.BotDM, InteractionContextType.PrivateChannel)
         
         .addStringOption(option => option.setName('time')
         .setDescription('Due date (type "help" to see how to use this field)')

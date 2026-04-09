@@ -58,6 +58,15 @@ module.exports = {
 			throw error;
 		}
 
+		/*try {
+			await rest.put(
+				Routes.applicationCommands(clientId),
+				{ body: commands },
+			).then(() => console.log(`\ncommands deployed globally`));
+		} catch (error) {
+			//console.error(error);
+			throw error;
+		}*/
 	}
 }
 
