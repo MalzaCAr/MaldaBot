@@ -1,7 +1,7 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
 const { Client, GatewayIntentBits, Message, Collection } = require('discord.js');
-const { deployCommands } = require ('./deploy-commands');
+const { deployCommands, deployGlobalCommands } = require ('./deploy-commands');
 const { query, run_db } = require('./db/index');
 const dotenv = require('dotenv');
 const { reg } = require('./pee_vee_pee');
@@ -21,10 +21,13 @@ client.commands = new Collection();
 
 // When the client is ready, run this code (only once)
 let emojis;
-client.once('ready', async() => {
+client.once('clientReady', async() => {
+	//deploys commands for every server the bot is in, and also deploys global commands
 	client.guilds.cache.forEach(async guild => {
 		await deployCommands(guild.id, guild.name, client.commands);
 	});
+	await deployGlobalCommands(client.commands);
+
 	await run_db();
 	console.log('[DEV BOT]');
 	console.log('bot good yes'); //bot ready
